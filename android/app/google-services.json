@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "350965239015",
+    "firebase_url": "https://navsample-7dcc1.firebaseio.com",
+    "project_id": "navsample-7dcc1",
+    "storage_bucket": "navsample-7dcc1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:350965239015:android:ab9b59e8ace60408d8e642",
+        "android_client_info": {
+          "package_name": "com.navsample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "350965239015-2j83hg97bkn0ln3b9po74c6ib32pl5j8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAA7c7eh1BZl_OvcWRJj8IS36vqlNXQsbA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "350965239015-2j83hg97bkn0ln3b9po74c6ib32pl5j8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
