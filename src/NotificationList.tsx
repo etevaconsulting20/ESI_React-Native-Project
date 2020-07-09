@@ -1,11 +1,13 @@
 
 import React, {Component} from 'react';
-import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, Modal,ToastAndroid, Dimensions, Linking} from 'react-native';
+import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, Modal,ToastAndroid, Dimensions, Linking, TouchableWithoutFeedback, AsyncStorage} from 'react-native';
 import {Item,Input,Toast, Title, Header, Left, Right, Body, Button, CheckBox} from 'native-base'
-import { NavigationScreenProp } from 'react-navigation';
+import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
+import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
+import firebase from 'react-native-firebase';
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -17,9 +19,13 @@ interface  Props extends NavigationScreenProp <void>{
       tickToConfirm:boolean,
       modal:any,
       navigationParams:any,
+      notificationDetails:any,
+      unreadNotifications:any,
+      username:any,
   }
 
 class NotificationList extends Component<Props, State> {
+    _menu = null;
     constructor(props:any) {
         super(props);
         this.state={
@@ -28,17 +34,90 @@ class NotificationList extends Component<Props, State> {
          tickToConfirm:false,
          modal:null,
          navigationParams:null,
+         notificationDetails:[],
+         unreadNotifications:null,
+         username:null,
       }
     }
 
-    componentWillMount(){
+     componentWillMount(){
         // this.getNavigationParams();
+        this.getUsernameFromStorage();
+        this.getNotificationDataFromStorage();
+      this.getNotificationMessage();
+     
+      }
+   
+      async getUsernameFromStorage(){
+        let username= await AsyncStorage.getItem('username');
+        if(username !==null){
+             this.setState({username:JSON.parse(username)})
+        }
+      }
+      async getNotificationDataFromStorage(){
+        let data = await AsyncStorage.getItem('notificationData');
+        if(data != null){
+            let dataFromStorage:any
+            dataFromStorage = JSON.parse(data);
+            console.log('from asyncStoreage...............',dataFromStorage);
+            let count=0;
+            dataFromStorage.map((data:any,i:any)=>{
+                if(data.isRead == false){
+                    count = count+1;
+                }
+            })
+            this.setState({notificationDetails:dataFromStorage,unreadNotifications:count})
+            // return JSON.parse(data);
+        }
       }
      
+      getNotificationMessage(){
+        let messageListener = firebase.messaging().onMessage(async (message)=>{
+            if(message){
+                this.createNotification();
+                let obj ={...message.data,isRead:false,readNotificationTime:null};
+                let notificationDetails = [...this.state.notificationDetails , obj]
+                console.log(' notificationDetails...', notificationDetails)
+                await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
+                this.getNotificationDataFromStorage();
+            
+                // let notificationDetail=[];
+                // let time = new Date(JSON.parse(message.data.dateTimeAlarm))
+                // console.log("current time....",time);
+                // let notificationData = {...message.data,dateTimeAlarm:time}
+                // notificationDetail.push(notificationData)
+                // this.setState({notificationDetails:notificationDetail})
+                // Alert.alert('notification details',JSON.stringify(message))
+            }
+        })
+      }
+
+    createNotification(){
+        const channel = new firebase.notifications.Android
+                .Channel('test-channel','Test Channel',firebase.notifications.Android.Importance.High)
+                .setDescription('My apps test channel');
+        firebase.notifications().android.createChannel(channel);
+
+        const notification = new firebase.notifications.Notification()
+                .setNotificationId('notificationId')
+                .setTitle('Pending Notifications')
+                .setBody('Pending Notifications')
+                .setData({
+                    key1: 'value1',
+                    key2: 'value2',
+                })
+                .android.setAutoCancel(true);
+        notification.android.setChannelId('test-channel')
+                .android.setSmallIcon('ic_launcher');
+
+         //display the notification
+        firebase.notifications().displayNotification(notification);
+    }
+
     getNavigationParams(){
         if(this.props.navigation.state.params != undefined){
           let initData = this.props.navigation.state.params.initData;
-          this.setState({navigationParams:initData})
+          this.setState({notificationDetails:initData})
           console.log("details.........",initData)
         }
         else{
@@ -46,8 +125,16 @@ class NotificationList extends Component<Props, State> {
         }
        }
 
-    navigateToNotificationDetails(){
-        this.props.navigation.navigate('NotificationDetails')
+    async navigateToNotificationDetails(data:any,i:any){
+        console.log('go to next page',this.state.notificationDetails[i])
+        if(this.state.notificationDetails[i].isRead ==false){
+            this.state.notificationDetails[i].readNotificationTime = moment().format('hh:mm - MMM D, YYYY');
+            this.setState({unreadNotifications:this.state.unreadNotifications - 1})
+        }
+        this.state.notificationDetails[i].isRead = true;
+        
+        await AsyncStorage.setItem('notificationData',JSON.stringify(this.state.notificationDetails));
+        this.props.navigation.navigate('NotificationDetails',{initData:data,index:i})
     }
     openMenuModal(){
         this.setState({
@@ -55,6 +142,7 @@ class NotificationList extends Component<Props, State> {
         })
     }
     openConfirmationModal(modalData:any){
+        this._menu.hide();
         this.setState({
             menuModal:false,confirmationModal:true,modal:modalData
         })
@@ -69,48 +157,106 @@ class NotificationList extends Component<Props, State> {
             tickToConfirm:!this.state.tickToConfirm
         })
     }
-    showToast(){
+    async showToastAndDeleteNotifications(){
+        // console.log('modal.....',this.state.modal)
+        if(this.state.modal == 'deleteAll'){
+            ToastAndroid.show(`${this.state.notificationDetails.length}: Messages Deleted`,ToastAndroid.SHORT)
+            this.state.notificationDetails=[];
+            await AsyncStorage.setItem('notificationData',JSON.stringify(this.state.notificationDetails));
+        }
+        if(this.state.modal == 'deleteAllRead'){
+           let deleteData= this.state.notificationDetails;
+           let deleteAllRead =[];
+              deleteData.map((data:any,i:any)=>{
+                if(data.isRead == false){
+                    deleteAllRead.push(data)
+                }
+                console.log('deleteAllRead....',deleteAllRead)
+                // Alert.alert(JSON.stringify(deleteAllRead))
+            })
+            this.state.notificationDetails = deleteAllRead;
+            await AsyncStorage.setItem('notificationData',JSON.stringify(this.state.notificationDetails));
+            ToastAndroid.show(`0: Messages Deleted`,ToastAndroid.SHORT)
+        }
         this.setState({
             confirmationModal:false,tickToConfirm:false
         })
-        ToastAndroid.show('0: Messages Deleted',ToastAndroid.SHORT)
     }
-    logout(){
+     logout(){
+        this._menu.hide();
+    AsyncStorage.multiRemove(['authenticationKey'],()=>{
         this.props.navigation.navigate('Login')
+    })
     }
     loginToSystem(){
+        this._menu.hide();
         Linking.openURL("https://www.myethersec.com/SafeServe/ServerPhP/UI/FrontPages/MyEtherSecFrontPage.php")
     }
-
+    setMenuRef = (ref:any) => {
+        this._menu = ref;
+      };
+      showMenu = () => {
+        this._menu.show();
+      };
+      
     render(){
+        console.log("render.this.state.notificationDetails...",this.state.notificationDetails)
         return(
             <ScrollView>
+                {/* <NavigationEvents 
+            onWillFocus={payload => {
+                this.getNotificationDataFromStorage();
+                this.getNotificationMessage();
+            }}
+            /> */}
                     <Header style={styles.header}>
                         <Left style={styles.headerLeft}>
-                            <Text style={{color:'#ffffff',fontSize:20,}}>Kashyap Gadhave</Text>
-                            <Text style={{color:'#A9A9A9',fontSize:16,}}>231(230 unread)</Text>
-                        </Left>
+                            <Text style={{color:'#ffffff',fontSize:21,fontWeight:'bold'}}>{this.state.username}</Text>
+                            {this.state.notificationDetails.length>0 ?
+                                <Text style={{color:'#A9A9A9',fontSize:16,}}>{this.state.notificationDetails.length} ({this.state.unreadNotifications} unread)</Text>
+                                   : 
+                                   <Text style={{color:'#A9A9A9',fontSize:16,}}>0 (0 unread)</Text>
+                              }
+                            </Left>
                         <Right style={styles.headerRight}>
                             <MaterialCommunityIcons name="home" style={styles.icons}> </MaterialCommunityIcons>
-                            <MaterialCommunityIcons onPress={()=>this.openMenuModal()} name="dots-vertical" style={styles.icons}> </MaterialCommunityIcons>
+                            <Menu style={styles.menuModal}
+                                    ref={this.setMenuRef}
+                                    button={ <MaterialCommunityIcons onPress={()=>this.showMenu()} name="dots-vertical" style={styles.icons}> </MaterialCommunityIcons>}>
+                                <MenuItem onPress={()=>this.loginToSystem()}>Login to System</MenuItem>
+                                <MenuItem onPress={()=>this.openConfirmationModal('deleteAll')}>Delete All</MenuItem>
+                                <MenuItem onPress={()=>this.openConfirmationModal('deleteAllRead')}>Delete All Read</MenuItem>
+                                <MenuItem onPress={()=>this.openConfirmationModal('logout')}>Logout</MenuItem>
+                            </Menu>
+                            {/* <MaterialCommunityIcons onPress={()=>this.openMenuModal()} name="dots-vertical" style={styles.icons}> </MaterialCommunityIcons> */}
                         </Right>
                     </Header>
                  {/* <View style={{backgroundColor:'#383838'}}> */}
-            {/* <TouchableOpacity onPress={() => this.navigateToNotificationDetails(this.state.navigationParams)}>
-                    <View style={{flexDirection:'row',height:60,backgroundColor:'#383838', borderBottomColor:'#ffffff',borderBottomWidth:0.4}}>
+                {this.state.notificationDetails && this.state.notificationDetails.length > 0 ? this.state.notificationDetails.map((data:any,i:any)=>(
+                    <TouchableOpacity key={i} onPress={() => this.navigateToNotificationDetails(data,i)}>
+                    <View style={{flexDirection:'row',height:63,backgroundColor:data.isRead ?'#E0E0E0':'#383838', borderBottomColor:data.isRead ? '#808080' : '#ffffff',borderBottomWidth:0.4}}>
                         <Left style={{flex:1}}>
-                             <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:'#ffffff'}}> </MaterialCommunityIcons>
+                            <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:data.isRead ? '#000000' : '#ffffff'}}> </MaterialCommunityIcons>
                         </Left>
                         <Body style={{flex:3,flexDirection:'column',flexWrap:'wrap'}}>  
-                              <Text style={styles.text}>{this.state.navigationParams.systemId}</Text>
-                            <Text style={styles.subText}>Camera:{this.state.navigationParams.cameraId}</Text>
+                              <Text style={data.isRead ? styles.text1 : styles.text}>{data.systemId}</Text>
+                             <Text style={data.isRead ? styles.subText1 : styles.subText}>Camera: {data.cameraId}</Text>
                         </Body>
                         <Right style={{flex:1.5}}>
-                             <Text style={{color:'#1E90FF',paddingRight:12,fontSize:16,fontWeight:'bold'}}>{this.state.navigationParams.epochTimeMs}</Text>
+                        <Text style={{color:data.isRead ? '#000000' : '#1E90FF',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>{moment.unix(data.dateTimeAlarm/1000).format('hh:mm')}</Text> 
+                        {/* <Text style={{color:data.isRead ? '#000000' : '#1E90FF',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>{data.dateTimeAlarm}</Text>  */}
+                            {/* <Text style={{color:'#1E90FF',paddingRight:12,fontSize:16,fontWeight:'bold'}}>{data.dateTimeAlarm.toLocaleTimeString().slice(data.dateTimeAlarm.toLocaleTimeString().lastIndexOf(':')+1,data.dateTimeAlarm.toLocaleTimeString().length)}</Text> */}
+                            {/* <Text style={{color:'#1E90FF',paddingRight:12,fontSize:16,fontWeight:'bold'}}>{data.dateTimeAlarm.getHours()}:{data.dateTimeAlarm.getMinutes()}</Text> */}
                         </Right>
                     </View>
-             </TouchableOpacity> */}
-             <TouchableOpacity onPress={() => this.navigateToNotificationDetails()}>
+                    </TouchableOpacity>
+                )) :
+                <View style={{justifyContent:'center',alignItems:'center',paddingTop:20}}>
+                    <Text style={{fontSize:18,color:'#808080'}}>No notifications to display</Text>
+                </View>
+            }
+           
+             {/* <TouchableOpacity onPress={() => this.navigateToNotificationDetails()}>
                     <View style={{flexDirection:'row',height:60,backgroundColor:'#E0E0E0',borderBottomColor:'#ffffff',borderBottomWidth:0.4}}>
                         <Left style={{flex:1}}>
                            <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:'#000000'}}> </MaterialCommunityIcons>
@@ -123,10 +269,10 @@ class NotificationList extends Component<Props, State> {
                             <Text style={{color:'#000000',paddingRight:12,fontSize:16,fontWeight:'bold'}}>17:22</Text>
                         </Right>
                     </View>
-             </TouchableOpacity>
+             </TouchableOpacity> */}
                 {/* </View> */}
 
-                <Modal visible={this.state.menuModal} transparent={true} animationType={'none'}>
+                {/* <Modal visible={this.state.menuModal} transparent={true} animationType={'none'}>
                     <View style={styles.menuModal}>
                         <Button transparent onPress={()=>this.loginToSystem()}>
                             <Text style={styles.buttonText}>Login to System</Text>
@@ -141,7 +287,9 @@ class NotificationList extends Component<Props, State> {
                             <Text style={styles.buttonText}>Logout</Text>
                         </Button>
                     </View>
-                </Modal>
+                </Modal> */}
+                
+               
 
                 <Modal visible={this.state.confirmationModal} transparent={true} animationType={'none'}>
                     <View style={styles.confirmationModal}>
@@ -150,25 +298,25 @@ class NotificationList extends Component<Props, State> {
                         {this.state.modal == 'logout' ?
                         <View>
                             <Text style={styles.confirmText}>Are you sure you want to logout?</Text>
-                            <Button transparent style={{paddingTop:25}} onPress={()=>this.toggleCheckbox()}>
+                            <Button transparent style={{marginTop:25}} onPress={()=>this.toggleCheckbox()}>
                              <View style={{flexDirection:"row"}}>
                                 <Left style={{flex:3}}>
-                                    <Text style={{color:'#808080'}}>Tick to confirm you wish to logout and no longer receive alert messages.</Text>
+                                    <Text style={{color:'#808080',fontSize:18}}>Tick to confirm you wish to logout and no longer receive alert messages.</Text>
                                 </Left>
                                 <Right style={{flex:0.5,paddingRight:12}}>
                                     <CheckBox checked={this.state.tickToConfirm} onPress={()=>this.toggleCheckbox()}></CheckBox>
                                 </Right>
                             </View>
                            </Button> 
-                           <View style={{flexDirection:'column',paddingTop:10}}>
+                           <View style={{flexDirection:'column',paddingTop:10,marginTop:250}}>
                                 <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.logout()} disabled={!this.state.tickToConfirm}>
-                                    <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold'}}>YES</Text>
+                                    <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES</Text>
                                 </Button>
                                 <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.logout()} disabled={!this.state.tickToConfirm}>
-                                    <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold'}}>YES AND DELETE EXISTING MESSAGES</Text>
+                                    <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES AND DELETE EXISTING MESSAGES</Text>
                                 </Button>
                                 <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.closeConfirmationModal()} >
-                                    <Text style={{color:'#009999',fontWeight:'bold'}}>CANCEL</Text>
+                                    <Text style={{color:'#009999',fontWeight:'bold',fontSize:20}}>CANCEL</Text>
                                 </Button>
                             </View>
                         </View> :
@@ -177,22 +325,22 @@ class NotificationList extends Component<Props, State> {
                             <Button transparent onPress={()=>this.toggleCheckbox()}>
                             <View style={{flexDirection:"row"}}>
                                 <Left>
-                                    <Text style={{color:'#808080'}}>Tick to confirm</Text>
+                                    <Text style={{color:'#808080',fontSize:18}}>Tick to confirm</Text>
                                 </Left>
                                 <Right style={{paddingRight:12}}>
                                     <CheckBox checked={this.state.tickToConfirm} onPress={()=>this.toggleCheckbox()}></CheckBox>
                                 </Right>
                             </View>
                             </Button> 
-                            <View style={{flexDirection:'row'}}>
+                            <View style={{flexDirection:'row',marginTop:300}}>
                                 <Left>
                                     <Button transparent onPress={()=>this.closeConfirmationModal()}>
-                                        <Text style={{color:'#009999',fontWeight:'bold'}}>CANCEL</Text>
+                                        <Text style={{color:'#009999',fontWeight:'bold',fontSize:20}}>CANCEL</Text>
                                     </Button>
                                 </Left>
                                 <Right>
-                                    <Button transparent onPress={()=>this.showToast()} disabled={!this.state.tickToConfirm}>
-                                        <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold'}}>YES</Text>
+                                    <Button transparent onPress={()=>this.showToastAndDeleteNotifications()} disabled={!this.state.tickToConfirm}>
+                                        <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES</Text>
                                     </Button>
                                 </Right>
                             </View>
@@ -220,20 +368,20 @@ class NotificationList extends Component<Props, State> {
     },
     headerLeft: {
         flex: 2,
-        flexDirection: 'column'
+        flexDirection: 'column',paddingLeft:5
     },
     headerRight: {
         flex: 2,
         flexDirection: 'row'
     },
     text:{
-        color:'#ffffff',fontSize:24,fontWeight:'bold'
+        color:'#ffffff',fontSize:20,fontWeight:'bold'
     },
-    subText:{color:'#ffffff',fontSize:19,fontWeight:'bold'},
+    subText:{color:'#ffffff',fontSize:15,fontWeight:'bold'},
     text1:{
-        color:'#000000',fontSize:24,fontWeight:'bold',fontStyle:'italic'
+        color:'#000000',fontSize:20,fontWeight:'normal',fontStyle:'italic'
     },
-    subText1:{ color:'#000000',fontSize:19,fontWeight:'bold',fontStyle:'italic'},
+    subText1:{ color:'#000000',fontSize:15,fontWeight:'normal',fontStyle:'italic'},
     menuModal: {  
         alignSelf:'flex-end',
         backgroundColor : "#ffffff",   
@@ -256,13 +404,13 @@ class NotificationList extends Component<Props, State> {
         borderWidth: 1,  
         borderColor: '#ccc',    
         elevation:20,
-      top:Dimensions.get('window').height/3
+      top:Dimensions.get('window').height/15
          },
     buttonText:{
         fontSize:16,paddingLeft:15
     },
     confirmText:{
-        fontSize:16,fontWeight:'bold'
+        fontSize:22,fontWeight:'bold'
     },
   });
 

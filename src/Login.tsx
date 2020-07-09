@@ -1,15 +1,20 @@
 
 import React, {Component} from 'react';
-import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, ToastAndroid, Modal, Dimensions} from 'react-native';
+import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, ToastAndroid, Modal, Dimensions, AsyncStorage} from 'react-native';
 import {Item,Icon,Input,Button,Toast, Title, Container, Left, Right} from 'native-base'
 import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import firebase from 'react-native-firebase';
 import axios from "axios";
 import moment from 'moment';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
+import * as testActions from "./actions/TestAction";
+import messaging from 'react-native-firebase/messaging';
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
+    testActions: typeof testActions;
   }
   
   interface State{
@@ -17,11 +22,14 @@ interface  Props extends NavigationScreenProp <void>{
     password:any,
     disableBtn:boolean,
     loginFailedModal:boolean,
+    loginCheckMessage:boolean,
+    loginErrorMessage:boolean,
+    networkErrorMessage:boolean,
   }
 
   const backend_Endpoint='https://appbackend20180515014638.azurewebsites.net//api/register'
   let handle:any
-
+  let registrationId:any;
   class Login extends Component<Props, State> {
     constructor(props:any) {
         super(props);
@@ -30,35 +38,40 @@ interface  Props extends NavigationScreenProp <void>{
           password:'',
           disableBtn:true,
           loginFailedModal:false,
+          loginCheckMessage:false,
+          loginErrorMessage:false,
+          networkErrorMessage:false,
       }
     }
 
     componentWillMount(){
+      this.checkUserLogin();
         // this.checkPermission();
         this.getToken();
         // this.permission();
         this.firebaseNotificationCheck();
     }
-
+  async checkUserLogin(){
+    const registrationKey =await AsyncStorage.getItem('authenticationKey')
+    // JSON.parse(registrationId);
+    if(registrationKey !== null){
+      console.log(".......login",registrationKey);
+      this.props.navigation.navigate('NotificationList')
+    }
+  }
     async firebaseNotificationCheck(){
       const notificationOpen = await firebase.notifications().getInitialNotification();
-      // console.log('getInitialNotification......:',notificationOpen)
       if (notificationOpen) {
-        let currentTime = moment().utcOffset('+05:30').format(' hh:mm');
-        let notificationData={...notificationOpen.notification.data,epochTimeMs:currentTime}
-        let initData = notificationData;
-        console.log('getInitialNotification data.....:',initData)
-        this.props.navigation.navigate('NotificationList',{initData:initData})
+        console.log("notificationOpen.....",notificationOpen)
+        let notificationData=notificationOpen.notification.data
+        this.props.navigation.navigate('NotificationList')
        }
 
        firebase.notifications().onNotificationOpened((notificationOpen) => {
-        // console.log('onNotificationOpened......:',notificationOpen)
       if (notificationOpen) {
-        let currentTime = moment().utcOffset('+05:30').format(' hh:mm');
-        let notificationData={...notificationOpen.notification.data,epochTimeMs:currentTime}
-        let initData = notificationData;
-        console.log('onNotificationOpened data info.....:',initData)
-        this.props.navigation.navigate('NotificationList',{initData:initData})
+        console.log("onNotificationOpened.....",notificationOpen)
+        let notificationData=notificationOpen.notification.data
+       this.props.navigation.navigate('NotificationList')
        }
     });
     }
@@ -125,12 +138,19 @@ permission(){
 
     navigateToNotificationList(){
         // this.setState({loginFailedModal:true})
+        this.setState({loginCheckMessage:true})
+        AsyncStorage.setItem('username',JSON.stringify(this.state.username));
        this.apiCall();
-       this.props.navigation.navigate('NotificationList')
-       ToastAndroid.show('Logged in and registered',ToastAndroid.SHORT)
+      //  this.props.navigation.navigate('NotificationList')
+      //  ToastAndroid.show('Logged in and registered',ToastAndroid.SHORT)
       
     }
-
+    saveRegistrationIdAndNavigate(registrationId:any){
+      // this.props.navigation.navigate('NotificationList')
+      this.setState({loginCheckMessage:false})
+      ToastAndroid.show('Logged in and registered',ToastAndroid.SHORT)
+      AsyncStorage.setItem('authenticationKey',JSON.stringify(registrationId))
+    }
     apiCall(){
       const authInfo={
         Username:this.state.username,
@@ -151,21 +171,28 @@ permission(){
 
       axios.post(`${backend_Endpoint}?handle=${handle}`,loginModel,config)
         .then((response)=>{
-            console.log("response...",response)
+          console.log("response...",response)
             console.log("registrationId...",response.data)
-            // return response.data
             if(response.data){
+              this.props.navigation.navigate('NotificationList')
+              registrationId=response.data;
+              this.saveRegistrationIdAndNavigate(registrationId);
               axios.put(`${backend_Endpoint}/${response.data}`,notifRegisModel,config)
               .then((responseData)=>{
                   console.log("responseData...",responseData)
               })
               .catch((error)=>{
-                console.log("error...",error.response)
+                console.log("1error...",error.response)
               })
             }
         })
         .catch((error)=>{
-          console.log("error...",error.response)
+          console.log("2error...",error.response)
+          if(error.response.status == '401'){
+            this.setState({loginCheckMessage:false,loginErrorMessage:true,loginFailedModal:true})
+          }else{
+          this.setState({loginCheckMessage:false,networkErrorMessage:true,loginFailedModal:true})
+          }
         })
     }
 
@@ -176,14 +203,23 @@ permission(){
       this.setState({password:password})
     }
     closeLoginFailedModal(){
-      this.setState({loginFailedModal:false})
+      this.setState({loginFailedModal:false,networkErrorMessage:false,loginErrorMessage:false})
     }
-
+    testSample(){
+      this.props.testActions.testSample('Kashyap');
+    }
     render(){
+      // console.log("this.props.testReducer.name.....",this.props.testReducer);
         return(
              <Container>
-               <View style={{backgroundColor:'#000000',height:100}}><Text style={{color:'#ffffff',fontWeight:'bold',fontSize:25,padding:10}}>EtherSec</Text></View>
+               <View style={{backgroundColor:'#000000',height:100}}>
+                 <Text style={{color:'#ffffff',fontWeight:'bold',fontSize:25,padding:10}}>EtherSec</Text>
+                </View>
+            
               <View style={{justifyContent:'center',alignItems:'center',position: 'absolute',top:50,bottom:0,right:0,left:0,backgroundColor:'#000000'}}>
+               {this.state.loginCheckMessage &&<Text style={{color:'#ffffff',padding:10,fontWeight:'bold'}}>Checking Login Credentials...</Text>}
+               {this.state.loginErrorMessage &&<Text style={{color:'#FF0000',padding:10,fontWeight:'bold'}}>Login Failed: Invalid username and/or password</Text>}
+               {this.state.networkErrorMessage &&<Text style={{color:'#FF0000',padding:10,fontWeight:'bold'}}>Login Failed: Please check your network connection</Text>}
             <View style={{backgroundColor:'#ffffff',borderRadius:5}}>
                 <Item  style={styles.formItem}>
                   <Input autoCapitalize='none' placeholderTextColor={"#c8c8c8"} style={styles.formItemInput} 
@@ -200,7 +236,8 @@ permission(){
               </Item>
             </View>
 
-            <TouchableOpacity disabled={(this.state.username.length>0 && this.state.password.length>0) ? false : true}  style={styles.button} onPress={()=>this.navigateToNotificationList()}>
+            <TouchableOpacity disabled={(this.state.username.length>0 && this.state.password.length>0) ? false : true}  style={styles.button} 
+                        onPress={()=>this.navigateToNotificationList()}>
               <Text style={[styles.buttonText,{color:(this.state.username.length>0 && this.state.password.length>0) ? '#ffffff' : '#606060' }]}>Login</Text>
             </TouchableOpacity>
 
@@ -208,14 +245,25 @@ permission(){
                 <Text style={{color:'#ffffff',fontSize:16}}>To receive detection alerts,please login with your system username and password</Text>
             </View>
             </View>
-
+            {/* <Button style={{backgroundColor:'#ffffff'}} onPress={()=>this.testSample()}>
+              <Text>Click test</Text>
+            </Button> */}
             <Modal visible={this.state.loginFailedModal} transparent={true} animationType={'none'}>
+                    {this.state.loginErrorMessage &&
                     <View style={styles.loginFailedModal}>
-                          <Text style={{fontSize:16,fontWeight:'bold'}}>Login Failed: Invalid username and/or password</Text>
+                          <Text style={{fontSize:19,fontWeight:'bold'}}>Login Failed: Invalid username and/or password</Text>
                           <Button style={{marginTop:40}} transparent onPress={()=>this.closeLoginFailedModal()}>
-                                <Text style={{color:'#009999',fontWeight:'bold'}}>OK</Text>
+                                <Text style={{color:'#009999',fontWeight:'bold',fontSize:16}}>OK</Text>
                             </Button>
-                    </View>
+                    </View>}
+                    {this.state.networkErrorMessage &&
+                    <View style={styles.loginFailedModal}>
+                          <Text style={{fontSize:19,fontWeight:'bold'}}>Login Failed: Please check your network connection</Text>
+                          <Text style={{fontSize:17,marginTop:20}}>Unable to establish a connection to the remote server, please check your network connection.</Text>
+                          <Button style={{marginTop:20}} transparent onPress={()=>this.closeLoginFailedModal()}>
+                                <Text style={{color:'#009999',fontWeight:'bold',fontSize:16}}>OK</Text>
+                            </Button>
+                    </View>}
             </Modal>
             </Container>
         )
@@ -298,5 +346,17 @@ const styles = StyleSheet.create({
        },
   });
 
-export default Login
+  const mapStateToProps = ({testReducer}) => {
+    return{
+      testReducer:testReducer
+    }
+  }
+
+  const mapDispatchToProps = (dispatch:any) => {
+    return{
+      testActions:bindActionCreators(testActions , dispatch)
+    }
+  }
+
+  export default connect(mapStateToProps,mapDispatchToProps)(Login);
 

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.navsample">
+  package="com.example.b8.esi_notifications">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -11,6 +11,8 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
+        <service android:name="io.invertase.firebase.messaging.RNFirebaseBackgroundMessagingService" />
+
        <!-- <meta-data
     android:name="com.google.firebase.messaging.default_notification_icon"
     android:resource="@drawable/ic_stat_ic_notification" />
@@ -40,13 +42,12 @@
         </intent-filter>
      </service>
 
-     <service android:name="io.invertase.firebase.messaging.RNFirebaseInstanceIdService">
+     <!-- <service android:name="io.invertase.firebase.messaging.RNFirebaseInstanceIdService">
     <intent-filter>
       <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
     </intent-filter>
-  </service>
+  </service> -->
      
-   <!-- <service android:name="io.invertase.firebase.messaging.RNFirebaseBackgroundMessagingService" /> -->
     
       <receiver android:name="io.invertase.firebase.notifications.RNFirebaseNotificationReceiver"/>
   <receiver android:enabled="true" android:exported="true"  android:name="io.invertase.firebase.notifications.RNFirebaseNotificationsRebootReceiver">
@@ -57,6 +58,7 @@
       <category android:name="android.intent.category.DEFAULT" />
     </intent-filter>
   </receiver>
+
     </application>
 
 </manifest>

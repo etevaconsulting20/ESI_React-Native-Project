@@ -4,6 +4,8 @@ import {  StyleSheet,} from 'react-native';
 import { Colors,} from 'react-native/Libraries/NewAppScreen';
 import { createAppContainer, NavigationScreenProp } from 'react-navigation';
 import AppNavigator from './src/routes/appRouting';
+import { Provider } from "react-redux";
+import store from './src/store';
 
 
 interface Props {
@@ -14,7 +16,11 @@ const AppContainer = createAppContainer(AppNavigator);
 
 export default class App extends React.Component<Props> {  
   render() {  
-      return <AppContainer />;  
+      return (
+      <Provider store={store}>
+          <AppContainer />
+      </Provider>
+     )
   }  
 }  
 

@@ -1,4 +1,4 @@
-package com.navsample;
+package com.example.b8.esi_notifications;
 
 import com.facebook.react.ReactActivity;
 

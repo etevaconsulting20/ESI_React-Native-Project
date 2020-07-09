@@ -1,11 +1,13 @@
 
 import React, {Component} from 'react';
-import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Dimensions, Modal, BackHandler, Linking} from 'react-native';
+import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Dimensions, Modal, BackHandler, Linking, AsyncStorage, ToastAndroid, Image} from 'react-native';
 import {Item,Icon,Input,Button,Toast, Title, Left, Right,Header, Card, Footer, FooterTab, Container, CheckBox} from 'native-base'
 import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors, } from 'react-native/Libraries/NewAppScreen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
+import Video  from 'react-native-video';
+import moment from 'moment';
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -16,9 +18,11 @@ interface  Props extends NavigationScreenProp <void>{
     menuModal:boolean,
     tickToConfirm:boolean,
     confirmationModal:boolean,
+    index:any
   }
 
 class NotificationDetails extends Component<Props, State> {
+  _menu = null;
     constructor(props:any) {
         super(props);
         this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
@@ -27,16 +31,18 @@ class NotificationDetails extends Component<Props, State> {
             menuModal:false,
             tickToConfirm:false,
             confirmationModal:false,
+            index:null
     }
   }
 
     componentWillMount(){
-      // this.getNavigationParams();
+      this.getNavigationParams();
     }
     getNavigationParams(){
       // if(this.props.navigation.state.params != undefined){
         let initData = this.props.navigation.state.params.initData;
-        this.setState({navigationParams:initData})
+        let index = this.props.navigation.state.params.index;
+        this.setState({navigationParams:initData,index:index})
         console.log("details.........",initData)
       // }
       // else{
@@ -55,8 +61,12 @@ class NotificationDetails extends Component<Props, State> {
     }
   logout(){
     this.props.navigation.navigate('Login')
+    AsyncStorage.multiRemove(['authenticationKey'],()=>{
+      this.props.navigation.navigate('Login')
+  })
   }
   openConfirmationModal(){
+    this._menu.hide();
     this.setState({
         menuModal:false,confirmationModal:true
     })
@@ -77,10 +87,30 @@ componentWillUnmount(){
   BackHandler.removeEventListener("hardwareBackPress",this.handleBackButtonClick);
 }
 loginToSystem(){
+  this._menu.hide();
   Linking.openURL("https://www.myethersec.com/SafeServe/ServerPhP/UI/FrontPages/MyEtherSecFrontPage.php")
+}
+setMenuRef = (ref:any) => {
+  this._menu = ref;
+};
+showMenu = () => {
+  this._menu.show();
+};
+  async showToastAndGoToNavigationList(){
+  let dataFromStorage:any
+  let notificationData = await AsyncStorage.getItem('notificationData');
+  if(notificationData != null){
+      dataFromStorage = JSON.parse(notificationData);
+     dataFromStorage.splice(this.state.index,1)
+      console.log('dataToStorage.after delete..............',dataFromStorage);
+      await AsyncStorage.setItem('notificationData',JSON.stringify(dataFromStorage));
+      this.props.navigation.navigate('NotificationList');
+      ToastAndroid.show('Message Deleted',ToastAndroid.SHORT)
+  }
 }
 
     render(){
+      console.log(moment().format('hh:mm - MMM D YYYY'));
         return(
             <Container>
                 <NavigationEvents
@@ -88,35 +118,59 @@ loginToSystem(){
                       BackHandler.addEventListener("hardwareBackPress",this.handleBackButtonClick); }}/>
                  <Header style={styles.header}>
                         <Left style={styles.headerLeft}>
-                            <Text style={{color:'#ffffff',fontSize:20,}}>Soaker</Text>
-                            <Text style={{color:'#A9A9A9',fontSize:16}}>17:22-Aug 13,2019</Text>
+                            <Text style={{color:'#ffffff',fontSize:20,fontWeight:'bold'}}>{this.state.navigationParams.systemId}</Text>
+                            <Text style={{color:'#A9A9A9',fontSize:16}}>{moment.unix(this.state.navigationParams.dateTimeAlarm/1000).format('hh:mm - MMM D, YYYY' )}</Text>
                         </Left>
                         <Right style={styles.headerRight}>
                             <MaterialCommunityIcons name="refresh" onPress={()=>this.refreshPage()} style={styles.icons}> </MaterialCommunityIcons>
-                            <MaterialCommunityIcons name="delete" style={styles.icons}> </MaterialCommunityIcons>
-                            <MaterialCommunityIcons name="dots-vertical" onPress={()=>this.openMenuModal()} style={styles.icons}> </MaterialCommunityIcons>
+                            <MaterialCommunityIcons name="delete" onPress={()=>this.showToastAndGoToNavigationList()} style={styles.icons}> </MaterialCommunityIcons>
+                            <Menu style={styles.menuModal}
+                                    ref={this.setMenuRef}
+                                    button={ <MaterialCommunityIcons onPress={()=>this.showMenu()} name="dots-vertical" style={styles.icons}> </MaterialCommunityIcons>}>
+                                <MenuItem onPress={()=>this.loginToSystem()}>Login to System</MenuItem>
+                                <MenuItem onPress={()=>this.openConfirmationModal()}>Logout</MenuItem>
+                            </Menu>
+                            {/* <MaterialCommunityIcons name="dots-vertical" onPress={()=>this.openMenuModal()} style={styles.icons}> </MaterialCommunityIcons> */}
                         </Right>
                     </Header>
 
          <ScrollView>
+                 {/* <Video style={styles.imgView}
+                    //  video={{ uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' }}
+                     videoWidth={250}
+                     videoHeight={250}
+                    //  thumbnail={{ uri: 'https://i.picsum.photos/id/866/1600/900.jpg' }}
+                      source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
+                      resizeMode={"cover"}
+                      controls
+                    /> */}
                     <View style={styles.container}>
 
-                    <View style={styles.imgView}>
+                    <View>
+                    <Video style={styles.videoView}
+                    //  video={{ uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' }}
+                    //  videoWidth={250}
+                    //  videoHeight={250}
+                     thumbnail={{ uri: 'https://i.picsum.photos/id/866/1600/900.jpg' }}
+                      source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
+                      resizeMode={"cover"}
+                      controls
+                    />
                         {/* <Text style={{color:'lightblue'}}>Message:</Text>
                         <Text style={styles.text}>Detection ALert</Text> */}
                       </View>
 
                       <View style={styles.view}>
                         <Text style={styles.textTitle}>Message:</Text>
-                        <Text style={styles.textDesc}>NetworkTest</Text>
+                        <Text style={styles.textDesc}>{this.state.navigationParams.nhMessage}</Text>
                       </View>
                     
                       <View style={styles.view}>
                         <Text style={styles.textTitle}>From:</Text>
                         <View style={{flexDirection:'column'}}>
                         <View>
-                          <Text style={styles.textDesc}>Dummy System</Text>
-                          <Text style={styles.textDesc}>Camera: TestCam_1</Text>
+                          <Text style={styles.textDesc}>{this.state.navigationParams.systemId}</Text>
+                          <Text style={styles.textDesc}>Camera: {this.state.navigationParams.cameraId}</Text>
                         </View>
                            {/* <Text style={styles.text}>Camera:4</Text> */}
                         </View>
@@ -124,18 +178,20 @@ loginToSystem(){
 
                       <View style={styles.view}>
                         <Text style={styles.textTitle}>Alarm:</Text>
-                          <Text style={styles.textDesc}>11:23 - Jul 05,2020</Text>
+                          <Text style={styles.textDesc}>{moment.unix(this.state.navigationParams.dateTimeAlarm/1000).format('hh:mm - MMM D, YYYY' )}</Text>
                       </View>
 
                       <View style={styles.view}>
                         <Text style={styles.textTitle}>Status:</Text>
                         <View style={{flexDirection:'column',paddingRight:11}}>
-                           <Text style={styles.textDesc}>11:23 - Jul 05,2020(received)</Text>
-                           <Text style={styles.textDesc}>11:30 - Jul 05,2020(read)</Text>
+                           <Text style={styles.textDesc}>{moment.unix(this.state.navigationParams.dateTimeAlarm/1000).format('hh:mm - MMM D, YYYY' )} (received)</Text>
+                           <Text style={styles.textDesc}>{this.state.navigationParams.readNotificationTime} (read)</Text>
                         </View>
                       </View>
 
                   </View> 
+                  {/* <Image source={require('../assets/esi_logo.xml')} style={{height:50,width:50}}></Image> */}
+                  {/* <Image source={{uri:'D:/NavigationSample/EsiApp/ESI_React-Native-Project/assets/esi_logo.xml'}} style={{height:50,width:50}}></Image> */}
             </ScrollView>
 
             <View style={{  backgroundColor:'#000000',}}>
@@ -144,7 +200,7 @@ loginToSystem(){
                   </TouchableOpacity>
             </View>
                  
-            <Modal visible={this.state.menuModal} transparent={true} animationType={'none'}>
+            {/* <Modal visible={this.state.menuModal} transparent={true} animationType={'none'}>
                     <View style={styles.menuModal}>
                         <Button transparent onPress={()=>this.loginToSystem()}>
                             <Text style={styles.btnText}>Login to System</Text>
@@ -153,31 +209,31 @@ loginToSystem(){
                             <Text style={styles.btnText}>Logout</Text>
                         </Button>
                     </View>
-             </Modal>
+             </Modal> */}
 
              <Modal visible={this.state.confirmationModal} transparent={true} animationType={'none'}>
                     <View style={styles.confirmationModal}>
                         <View>
                             <Text style={styles.confirmText}>Are you sure you want to logout?</Text>
-                            <Button transparent style={{paddingTop:25}} onPress={()=>this.toggleCheckbox()}>
+                            <Button transparent style={{marginTop:25}} onPress={()=>this.toggleCheckbox()}>
                              <View style={{flexDirection:"row"}}>
                                 <Left style={{flex:3}}>
-                                    <Text style={{color:'#808080'}}>Tick to confirm you wish to logout and no longer receive alert messages.</Text>
+                                    <Text style={{color:'#808080',fontSize:18}}>Tick to confirm you wish to logout and no longer receive alert messages.</Text>
                                 </Left>
                                 <Right style={{flex:0.5,paddingRight:12}}>
                                     <CheckBox checked={this.state.tickToConfirm} onPress={()=>this.toggleCheckbox()}></CheckBox>
                                 </Right>
                             </View>
                            </Button> 
-                           <View style={{flexDirection:'column',paddingTop:10}}>
+                           <View style={{flexDirection:'column',paddingTop:10,marginTop:250}}>
                                 <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.logout()} disabled={!this.state.tickToConfirm}>
-                                    <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold'}}>YES</Text>
+                                    <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES</Text>
                                 </Button>
                                 <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.logout()} disabled={!this.state.tickToConfirm}>
-                                    <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold'}}>YES AND DELETE EXISTING MESSAGES</Text>
+                                    <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES AND DELETE EXISTING MESSAGES</Text>
                                 </Button>
                                 <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.closeConfirmationModal()} >
-                                    <Text style={{color:'#009999',fontWeight:'bold'}}>CANCEL</Text>
+                                    <Text style={{color:'#009999',fontWeight:'bold',fontSize:20}}>CANCEL</Text>
                                 </Button>
                             </View>
                         </View> 
@@ -197,13 +253,13 @@ const styles = StyleSheet.create({
     },
     container:{
       backgroundColor:'#000000',
-      height: Dimensions.get('window').height,
+      height: 'auto',
       width: Dimensions.get('window').width,
     },
-    imgView:{height:350,backgroundColor:'#383838',margin:3,marginTop:6,padding:5,borderRadius:5},
+    videoView:{height:300,backgroundColor:'#383838',margin:3,marginTop:6,padding:5,borderRadius:5},
     icons:{fontSize:25 ,color:'#ffffff',paddingLeft:10},
     header:{
-      backgroundColor:'#181818',
+      backgroundColor:'#181818',paddingLeft:15,
       height:60,
       // borderBottomColor:'#ffffff',borderBottomWidth:0.4
   },
@@ -265,10 +321,10 @@ const styles = StyleSheet.create({
       borderWidth: 1,  
       borderColor: '#ccc',    
       elevation:20,
-    top:Dimensions.get('window').height/3
+    top:Dimensions.get('window').height/15
        },
        confirmText:{
-        fontSize:16,fontWeight:'bold'
+        fontSize:22,fontWeight:'bold'
     },
   });
 

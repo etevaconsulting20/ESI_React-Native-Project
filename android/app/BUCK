@@ -35,12 +35,12 @@ android_library(
 
 android_build_config(
     name = "build_config",
-    package = "com.navsample",
+    package = "com.example.b8.esi_notifications",
 )
 
 android_resource(
     name = "res",
-    package = "com.navsample",
+    package = "com.example.b8.esi_notifications",
     res = "src/main/res",
 )
 

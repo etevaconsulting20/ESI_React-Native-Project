@@ -129,7 +129,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.navsample"
+        applicationId "com.example.b8.esi_notifications"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
