@@ -37,8 +37,8 @@ export default async (message: any) => {
 
              const notification = new firebase.notifications.Notification()
                 .setNotificationId('notificationId')
-                .setTitle(message.data.systemId)
-                .setBody(message.data.systemId)
+                .setTitle('Pending Notifications')
+                .setBody('Pending Notifications')
                 .setData({
                     key1: 'value1',
                     key2: 'value2',

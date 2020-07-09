@@ -1,7 +1,7 @@
 
 import React, {Component} from 'react';
 import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, Modal,ToastAndroid, Dimensions, Linking, TouchableWithoutFeedback, AsyncStorage} from 'react-native';
-import {Item,Input,Toast, Title, Header, Left, Right, Body, Button, CheckBox} from 'native-base'
+import {Item,Input,Toast, Title, Header, Left, Right, Body, Button, CheckBox, Container} from 'native-base'
 import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -182,11 +182,19 @@ class NotificationList extends Component<Props, State> {
             confirmationModal:false,tickToConfirm:false
         })
     }
-     logout(){
+     logout(text:any){
         this._menu.hide();
-    AsyncStorage.multiRemove(['authenticationKey'],()=>{
-        this.props.navigation.navigate('Login')
-    })
+        if(text == 'logout'){
+            AsyncStorage.multiRemove(['authenticationKey'],()=>{
+                this.props.navigation.navigate('Login')
+            })
+        }
+        if(text == 'logoutAndDeleteMsg'){
+            AsyncStorage.multiRemove(['authenticationKey','notificationData'],()=>{
+                this.props.navigation.navigate('Login')
+            })
+        }
+    
     }
     loginToSystem(){
         this._menu.hide();
@@ -202,14 +210,8 @@ class NotificationList extends Component<Props, State> {
     render(){
         console.log("render.this.state.notificationDetails...",this.state.notificationDetails)
         return(
-            <ScrollView>
-                {/* <NavigationEvents 
-            onWillFocus={payload => {
-                this.getNotificationDataFromStorage();
-                this.getNotificationMessage();
-            }}
-            /> */}
-                    <Header style={styles.header}>
+            <Container>
+                 <Header style={styles.header}>
                         <Left style={styles.headerLeft}>
                             <Text style={{color:'#ffffff',fontSize:21,fontWeight:'bold'}}>{this.state.username}</Text>
                             {this.state.notificationDetails.length>0 ?
@@ -231,6 +233,14 @@ class NotificationList extends Component<Props, State> {
                             {/* <MaterialCommunityIcons onPress={()=>this.openMenuModal()} name="dots-vertical" style={styles.icons}> </MaterialCommunityIcons> */}
                         </Right>
                     </Header>
+            <ScrollView>
+                {/* <NavigationEvents 
+            onWillFocus={payload => {
+                this.getNotificationDataFromStorage();
+                this.getNotificationMessage();
+            }}
+            /> */}
+                   
                  {/* <View style={{backgroundColor:'#383838'}}> */}
                 {this.state.notificationDetails && this.state.notificationDetails.length > 0 ? this.state.notificationDetails.map((data:any,i:any)=>(
                     <TouchableOpacity key={i} onPress={() => this.navigateToNotificationDetails(data,i)}>
@@ -308,11 +318,11 @@ class NotificationList extends Component<Props, State> {
                                 </Right>
                             </View>
                            </Button> 
-                           <View style={{flexDirection:'column',paddingTop:10,marginTop:250}}>
-                                <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.logout()} disabled={!this.state.tickToConfirm}>
+                           <View style={{flexDirection:'column',paddingTop:10,marginTop:200}}>
+                                <Button transparent style={{alignSelf:'flex-end',marginBottom:20}} onPress={()=>this.logout('logout')} disabled={!this.state.tickToConfirm}>
                                     <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES</Text>
                                 </Button>
-                                <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.logout()} disabled={!this.state.tickToConfirm}>
+                                <Button transparent style={{alignSelf:'flex-end',marginBottom:20}} onPress={()=>this.logout('logoutAndDeleteMsg')} disabled={!this.state.tickToConfirm}>
                                     <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES AND DELETE EXISTING MESSAGES</Text>
                                 </Button>
                                 <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.closeConfirmationModal()} >
@@ -350,7 +360,7 @@ class NotificationList extends Component<Props, State> {
                 </Modal>
 
               </ScrollView>
-             
+             </Container>
         )
     }
 }
@@ -363,8 +373,8 @@ class NotificationList extends Component<Props, State> {
     icons:{fontSize:25 ,color:'#ffffff',paddingLeft:10},
     header:{
         backgroundColor:'#181818',
-        height:60,
-        borderBottomColor:'#ffffff',borderBottomWidth:0.4
+        height:65,
+        borderBottomColor:'#ffffff',borderBottomWidth:0.4,
     },
     headerLeft: {
         flex: 2,

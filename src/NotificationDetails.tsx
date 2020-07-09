@@ -59,11 +59,17 @@ class NotificationDetails extends Component<Props, State> {
         tickToConfirm:!this.state.tickToConfirm
     })
     }
-  logout(){
-    this.props.navigation.navigate('Login')
-    AsyncStorage.multiRemove(['authenticationKey'],()=>{
-      this.props.navigation.navigate('Login')
-  })
+  logout(text:any){
+    if(text == 'logout'){
+      AsyncStorage.multiRemove(['authenticationKey'],()=>{
+          this.props.navigation.navigate('Login')
+      })
+  }
+  if(text == 'logoutAndDeleteMsg'){
+      AsyncStorage.multiRemove(['authenticationKey','notificationData'],()=>{
+          this.props.navigation.navigate('Login')
+      })
+  }
   }
   openConfirmationModal(){
     this._menu.hide();
@@ -135,30 +141,22 @@ showMenu = () => {
                     </Header>
 
          <ScrollView>
-                 {/* <Video style={styles.imgView}
-                    //  video={{ uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' }}
-                     videoWidth={250}
-                     videoHeight={250}
-                    //  thumbnail={{ uri: 'https://i.picsum.photos/id/866/1600/900.jpg' }}
-                      source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
-                      resizeMode={"cover"}
-                      controls
-                    /> */}
+                
                     <View style={styles.container}>
 
-                    <View>
-                    <Video style={styles.videoView}
-                    //  video={{ uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' }}
-                    //  videoWidth={250}
-                    //  videoHeight={250}
-                     thumbnail={{ uri: 'https://i.picsum.photos/id/866/1600/900.jpg' }}
-                      source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
-                      resizeMode={"cover"}
-                      controls
-                    />
-                        {/* <Text style={{color:'lightblue'}}>Message:</Text>
-                        <Text style={styles.text}>Detection ALert</Text> */}
-                      </View>
+                      <View>
+                        <Video style={styles.videoView}
+                        //  video={{ uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' }}
+                        //  videoWidth={250}
+                        //  videoHeight={250}
+                        thumbnail={{ uri: 'https://i.picsum.photos/id/866/1600/900.jpg' }}
+                          source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
+                          resizeMode={"cover"}
+                          controls
+                        />
+                            {/* <Text style={{color:'lightblue'}}>Message:</Text>
+                            <Text style={styles.text}>Detection ALert</Text> */}
+                        </View>
 
                       <View style={styles.view}>
                         <Text style={styles.textTitle}>Message:</Text>
@@ -225,11 +223,11 @@ showMenu = () => {
                                 </Right>
                             </View>
                            </Button> 
-                           <View style={{flexDirection:'column',paddingTop:10,marginTop:250}}>
-                                <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.logout()} disabled={!this.state.tickToConfirm}>
+                           <View style={{flexDirection:'column',paddingTop:10,marginTop:200}}>
+                                <Button transparent style={{alignSelf:'flex-end',marginBottom:20}} onPress={()=>this.logout('logout')} disabled={!this.state.tickToConfirm}>
                                     <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES</Text>
                                 </Button>
-                                <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.logout()} disabled={!this.state.tickToConfirm}>
+                                <Button transparent style={{alignSelf:'flex-end',marginBottom:20}} onPress={()=>this.logout('logoutAndDeleteMsg')} disabled={!this.state.tickToConfirm}>
                                     <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES AND DELETE EXISTING MESSAGES</Text>
                                 </Button>
                                 <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.closeConfirmationModal()} >
@@ -260,7 +258,7 @@ const styles = StyleSheet.create({
     icons:{fontSize:25 ,color:'#ffffff',paddingLeft:10},
     header:{
       backgroundColor:'#181818',paddingLeft:15,
-      height:60,
+      height:65,
       // borderBottomColor:'#ffffff',borderBottomWidth:0.4
   },
   headerLeft: {
