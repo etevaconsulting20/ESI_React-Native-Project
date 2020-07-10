@@ -8,6 +8,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import moment from 'moment';
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import firebase from 'react-native-firebase';
+import {ESI_Logo} from '../assets/ESI_Logo';
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -80,14 +81,6 @@ class NotificationList extends Component<Props, State> {
                 console.log(' notificationDetails...', notificationDetails)
                 await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
                 this.getNotificationDataFromStorage();
-            
-                // let notificationDetail=[];
-                // let time = new Date(JSON.parse(message.data.dateTimeAlarm))
-                // console.log("current time....",time);
-                // let notificationData = {...message.data,dateTimeAlarm:time}
-                // notificationDetail.push(notificationData)
-                // this.setState({notificationDetails:notificationDetail})
-                // Alert.alert('notification details',JSON.stringify(message))
             }
         })
       }
@@ -106,9 +99,15 @@ class NotificationList extends Component<Props, State> {
                     key1: 'value1',
                     key2: 'value2',
                 })
-                .android.setAutoCancel(true);
+                .setSound('default')
+                .android.setAutoCancel(true)
+                .android.setChannelId('test-channel')
+                .android.setSmallIcon('esi_logo')
+                .android.setColor('#00BFFF')
+                .android.setPriority(firebase.notifications.Android.Priority.Max);
+                
         notification.android.setChannelId('test-channel')
-                .android.setSmallIcon('ic_launcher');
+                .android.setSmallIcon('esi_logo');
 
          //display the notification
         firebase.notifications().displayNotification(notification);

@@ -8,6 +8,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import Video  from 'react-native-video';
 import moment from 'moment';
+import firebase from 'react-native-firebase';
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -37,18 +38,54 @@ class NotificationDetails extends Component<Props, State> {
 
     componentWillMount(){
       this.getNavigationParams();
+      this.getNotificationMessage();
     }
+
     getNavigationParams(){
-      // if(this.props.navigation.state.params != undefined){
         let initData = this.props.navigation.state.params.initData;
         let index = this.props.navigation.state.params.index;
         this.setState({navigationParams:initData,index:index})
         console.log("details.........",initData)
-      // }
-      // else{
-      //   this.state.navigationParams = null
-      // }
      }
+
+     getNotificationMessage(){
+      let messageListener = firebase.messaging().onMessage(async (message)=>{
+          if(message){
+              this.createNotification();
+              let obj ={...message.data,isRead:false,readNotificationTime:null};
+              let notificationDetails = [...this.state.notificationDetails , obj]
+              console.log(' notificationDetails...', notificationDetails)
+              await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
+          }
+      })
+    }
+    createNotification(){
+      const channel = new firebase.notifications.Android
+              .Channel('test-channel','Test Channel',firebase.notifications.Android.Importance.High)
+              .setDescription('My apps test channel');
+      firebase.notifications().android.createChannel(channel);
+
+      const notification = new firebase.notifications.Notification()
+              .setNotificationId('notificationId')
+              .setTitle('Pending Notifications')
+              .setBody('Pending Notifications')
+              .setData({
+                  key1: 'value1',
+                  key2: 'value2',
+              })
+              .setSound('default')
+              .android.setAutoCancel(true)
+              .android.setChannelId('test-channel')
+              .android.setSmallIcon('esi_logo')
+              .android.setColor('#00BFFF')
+              .android.setPriority(firebase.notifications.Android.Priority.Max);
+              
+      notification.android.setChannelId('test-channel')
+              .android.setSmallIcon('esi_logo');
+
+       //display the notification
+      firebase.notifications().displayNotification(notification);
+  }
      openMenuModal(){
       this.setState({
           menuModal:true

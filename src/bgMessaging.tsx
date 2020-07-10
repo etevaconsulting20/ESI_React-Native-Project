@@ -43,10 +43,15 @@ export default async (message: any) => {
                     key1: 'value1',
                     key2: 'value2',
                 })
-                .android.setAutoCancel(true);
+                .setSound('default')
+                .android.setAutoCancel(true)
+                .android.setChannelId('test-channel')
+                .android.setSmallIcon('esi_logo')
+                .android.setColor('#00BFFF')
+                .android.setPriority(firebase.notifications.Android.Priority.Max);
 
              notification.android.setChannelId('test-channel')
-                    .android.setSmallIcon('ic_launcher');
+                    .android.setSmallIcon('esi_logo');
 
             //display the notification
             firebase.notifications().displayNotification(notification);
