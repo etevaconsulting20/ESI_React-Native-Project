@@ -1,7 +1,7 @@
 
 import React, {Component} from 'react';
-import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, ToastAndroid, Modal, Dimensions, AsyncStorage} from 'react-native';
-import {Item,Icon,Input,Button,Toast, Title, Container, Left, Right} from 'native-base'
+import { StyleSheet,Text, View,ScrollView, Image,Platform, TouchableOpacity, Alert, ToastAndroid, Modal, Dimensions, AsyncStorage} from 'react-native';
+import {Item,Icon,Input,Button,Toast, Title, Container, Left, Right, } from 'native-base'
 import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import firebase from 'react-native-firebase';
@@ -211,39 +211,41 @@ permission(){
     render(){
       // console.log("this.props.testReducer.name.....",this.props.testReducer);
         return(
-             <Container>
-               <View style={{backgroundColor:'#000000',height:100}}>
+             <Container style={{backgroundColor:'#000000'}}>
+               <View style={{backgroundColor:'#000000'}}>
                  <Text style={{color:'#ffffff',fontWeight:'bold',fontSize:25,padding:10}}>EtherSec</Text>
                 </View>
-            
-              <View style={{justifyContent:'center',alignItems:'center',position: 'absolute',top:50,bottom:0,right:0,left:0,backgroundColor:'#000000'}}>
-               {this.state.loginCheckMessage &&<Text style={{color:'#ffffff',padding:10,fontWeight:'bold'}}>Checking Login Credentials...</Text>}
-               {this.state.loginErrorMessage &&<Text style={{color:'#FF0000',padding:10,fontWeight:'bold'}}>Login Failed: Invalid username and/or password</Text>}
-               {this.state.networkErrorMessage &&<Text style={{color:'#FF0000',padding:10,fontWeight:'bold'}}>Login Failed: Please check your network connection</Text>}
-            <View style={{backgroundColor:'#ffffff',borderRadius:5}}>
-                <Item  style={styles.formItem}>
-                  <Input autoCapitalize='none' placeholderTextColor={"#c8c8c8"} style={styles.formItemInput} 
-                        onChangeText={(text)=>this.setUsername(text)} 
-                        placeholder='Username'  keyboardType='email-address'  maxLength={256}/>
-                </Item>
-            </View>
+                <Image source={require('../assets/ESI_Logo.png')} style={styles.image}></Image>
 
-            <View style={{backgroundColor:'#ffffff',borderRadius:5}}>
-              <Item  style={styles.formItem}>
-                <Input placeholderTextColor={"#c8c8c8"} style={styles.formItemInput}  secureTextEntry={true} 
-                       onChangeText={(text)=>this.setPassword(text)} 
-                      placeholder='Password' keyboardType='default'  maxLength={16}/>
-              </Item>
-            </View>
+              <View style={{justifyContent:'center',alignItems:'center',backgroundColor:'#000000'}}>
+                  {/* <Image source={require('../assets/ESI_Logo.png')} style={styles.image}></Image>  */}
+                  {this.state.loginCheckMessage &&<Text style={{color:'#ffffff',padding:10,fontWeight:'bold'}}>Checking Login Credentials...</Text>}
+                  {this.state.loginErrorMessage &&<Text style={{color:'#FF0000',padding:10,fontWeight:'bold'}}>Login Failed: Invalid username and/or password</Text>}
+                  {this.state.networkErrorMessage &&<Text style={{color:'#FF0000',padding:10,fontWeight:'bold'}}>Login Failed: Please check your network connection</Text>}
+                <View style={{backgroundColor:'#ffffff',borderRadius:5}}>
+                    <Item  style={styles.formItem}>
+                      <Input autoCapitalize='none' placeholderTextColor={"#c8c8c8"} style={styles.formItemInput} 
+                            onChangeText={(text)=>this.setUsername(text)} 
+                            placeholder='Username'  keyboardType='email-address'  maxLength={256}/>
+                    </Item>
+                </View>
 
-            <TouchableOpacity disabled={(this.state.username.length>0 && this.state.password.length>0) ? false : true}  style={styles.button} 
-                        onPress={()=>this.navigateToNotificationList()}>
-              <Text style={[styles.buttonText,{color:(this.state.username.length>0 && this.state.password.length>0) ? '#ffffff' : '#606060' }]}>Login</Text>
-            </TouchableOpacity>
+                <View style={{backgroundColor:'#ffffff',borderRadius:5,}}>
+                  <Item  style={styles.formItem}>
+                    <Input placeholderTextColor={"#c8c8c8"} style={styles.formItemInput}  secureTextEntry={true} 
+                          onChangeText={(text)=>this.setPassword(text)} 
+                          placeholder='Password' keyboardType='default'  maxLength={16}/>
+                  </Item>
+                </View>
 
-            <View style={{margin:30}}>
-                <Text style={{color:'#ffffff',fontSize:16}}>To receive detection alerts,please login with your system username and password</Text>
-            </View>
+                <TouchableOpacity disabled={(this.state.username.length>0 && this.state.password.length>0) ? false : true}  style={styles.button} 
+                            onPress={()=>this.navigateToNotificationList()}>
+                  <Text style={[styles.buttonText,{color:(this.state.username.length>0 && this.state.password.length>0) ? '#ffffff' : '#606060' }]}>Login</Text>
+                </TouchableOpacity>
+
+                <View style={{margin:30}}>
+                    <Text style={{color:'#ffffff',fontSize:16}}>To receive detection alerts,please login with your system username and password</Text>
+                </View>
             </View>
             {/* <Button style={{backgroundColor:'#ffffff'}} onPress={()=>this.testSample()}>
               <Text>Click test</Text>
@@ -342,8 +344,9 @@ const styles = StyleSheet.create({
       borderWidth: 1,  
       borderColor: '#ccc',    
       elevation:20,
-    top:Dimensions.get('window').height/3
+      top:Dimensions.get('window').height/3
        },
+     image:{height:150,width:150,margin:15,alignSelf:'center'},
   });
 
   const mapStateToProps = ({testReducer}) => {

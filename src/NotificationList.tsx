@@ -127,7 +127,7 @@ class NotificationList extends Component<Props, State> {
 
     async navigateToNotificationDetails(data:any,i:any){
         console.log('go to next page',this.state.notificationDetails[i])
-        if(this.state.notificationDetails[i].isRead ==false){
+         if(this.state.notificationDetails[i].isRead ==false){
             this.state.notificationDetails[i].readNotificationTime = moment().format('hh:mm - MMM D, YYYY');
             this.setState({unreadNotifications:this.state.unreadNotifications - 1})
         }
@@ -167,16 +167,18 @@ class NotificationList extends Component<Props, State> {
         if(this.state.modal == 'deleteAllRead'){
            let deleteData= this.state.notificationDetails;
            let deleteAllRead =[];
+           let readNotificationsCount=0;
               deleteData.map((data:any,i:any)=>{
                 if(data.isRead == false){
                     deleteAllRead.push(data)
+                }else{
+                    readNotificationsCount = readNotificationsCount + 1
                 }
                 console.log('deleteAllRead....',deleteAllRead)
-                // Alert.alert(JSON.stringify(deleteAllRead))
             })
             this.state.notificationDetails = deleteAllRead;
             await AsyncStorage.setItem('notificationData',JSON.stringify(this.state.notificationDetails));
-            ToastAndroid.show(`0: Messages Deleted`,ToastAndroid.SHORT)
+            ToastAndroid.show(`${readNotificationsCount}: Messages Deleted`,ToastAndroid.SHORT)
         }
         this.setState({
             confirmationModal:false,tickToConfirm:false
@@ -209,6 +211,7 @@ class NotificationList extends Component<Props, State> {
       
     render(){
         console.log("render.this.state.notificationDetails...",this.state.notificationDetails)
+        console.log('moment....',moment())
         return(
             <Container>
                  <Header style={styles.header}>
@@ -253,10 +256,11 @@ class NotificationList extends Component<Props, State> {
                              <Text style={data.isRead ? styles.subText1 : styles.subText}>Camera: {data.cameraId}</Text>
                         </Body>
                         <Right style={{flex:1.5}}>
-                        <Text style={{color:data.isRead ? '#000000' : '#1E90FF',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>{moment.unix(data.dateTimeAlarm/1000).format('hh:mm')}</Text> 
-                        {/* <Text style={{color:data.isRead ? '#000000' : '#1E90FF',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>{data.dateTimeAlarm}</Text>  */}
-                            {/* <Text style={{color:'#1E90FF',paddingRight:12,fontSize:16,fontWeight:'bold'}}>{data.dateTimeAlarm.toLocaleTimeString().slice(data.dateTimeAlarm.toLocaleTimeString().lastIndexOf(':')+1,data.dateTimeAlarm.toLocaleTimeString().length)}</Text> */}
-                            {/* <Text style={{color:'#1E90FF',paddingRight:12,fontSize:16,fontWeight:'bold'}}>{data.dateTimeAlarm.getHours()}:{data.dateTimeAlarm.getMinutes()}</Text> */}
+                            <Text style={{color:data.isRead ? '#000000' : '#1E90FF',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>
+                                     {moment(moment.unix(data.dateTimeAlarm/1000).format("MM/DD/YYYY")).isBefore(moment().format("MM/DD/YYYY")) 
+                                       ? `${moment.unix(data.dateTimeAlarm/1000).format('ddd hh:mm')}`  
+                                       :  `${moment.unix(data.dateTimeAlarm/1000).format('hh:mm')}` }
+                                </Text> 
                         </Right>
                     </View>
                     </TouchableOpacity>
