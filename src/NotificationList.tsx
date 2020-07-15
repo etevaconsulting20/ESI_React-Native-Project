@@ -8,7 +8,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import moment from 'moment';
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import firebase from 'react-native-firebase';
-import {ESI_Logo} from '../assets/ESI_Logo';
+import PushNotification from 'react-native-push-notification'
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -29,6 +29,7 @@ class NotificationList extends Component<Props, State> {
     _menu = null;
     constructor(props:any) {
         super(props);
+        this.getNotificationDataFromStorage = this.getNotificationDataFromStorage.bind(this)
         this.state={
          menuModal:false,
          confirmationModal:false,
@@ -55,8 +56,8 @@ class NotificationList extends Component<Props, State> {
              this.setState({username:JSON.parse(username)})
         }
       }
-      async getNotificationDataFromStorage(){
-        let data = await AsyncStorage.getItem('notificationData');
+       async getNotificationDataFromStorage(){
+       let data= await AsyncStorage.getItem('notificationData');
         if(data != null){
             let dataFromStorage:any
             dataFromStorage = JSON.parse(data);
@@ -70,19 +71,61 @@ class NotificationList extends Component<Props, State> {
             this.setState({notificationDetails:dataFromStorage,unreadNotifications:count})
             // return JSON.parse(data);
         }
+       
       }
      
       getNotificationMessage(){
-        let messageListener = firebase.messaging().onMessage(async (message)=>{
-            if(message){
-                this.createNotification();
-                let obj ={...message.data,isRead:false,readNotificationTime:null};
-                let notificationDetails = [...this.state.notificationDetails , obj]
-                console.log(' notificationDetails...', notificationDetails)
-                await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
-                this.getNotificationDataFromStorage();
-            }
-        })
+        let notificationDetails=this.state.notificationDetails
+        //firebase
+                // let messageListener = firebase.messaging().onMessage(async (message)=>{
+                //     if(message){
+                //         this.createNotification();
+                //         let obj ={...message.data,isRead:false,readNotificationTime:null};
+                //         let notificationDetails = [...this.state.notificationDetails , obj]
+                //         console.log(' notificationDetails...', notificationDetails)
+                //         await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
+                //         this.getNotificationDataFromStorage();
+                //     }
+                // })
+        
+     //push notification
+          PushNotification.configure({
+            onNotification:  async function(notification:any) {
+                if(notification.data){
+                    console.log('REMOTE NOTIFICATION ==>', notification.data)
+                    let data = await AsyncStorage.getItem('notificationData');
+                              if(data != null){
+                                  let dataFromStorage:any
+                                  dataFromStorage = JSON.parse(data);
+                                  console.log('asyncStoreage...............',dataFromStorage);
+                                  let obj ={...notification.data,isRead:false,readNotificationTime:null};
+                                   dataFromStorage.push(obj)
+                                  console.log('dataFromStorage ..............',dataFromStorage);
+                                    AsyncStorage.setItem('notificationData',JSON.stringify(dataFromStorage)); 
+                                  
+                              }else{
+                                  let obj ={...notification.data,isRead:false,readNotificationTime:null};
+                                  let notificationInfo=[]
+                                  notificationInfo.push(obj)
+                                  console.log(' notificationInfo...............',notificationInfo);
+                                  AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo)); 
+                              }
+                         
+                          PushNotification.localNotification({
+                              autoCancel:true,
+                                title: "Pending Notifications", 
+                              message: "Pending Notifications", 
+                              playSound: true, 
+                              soundName: "default",
+                              invokeApp: true, 
+                              largeIcon:'esi_logo',
+                              smallIcon:'esi_logo',
+                              color:'#00BFFF',
+                          });
+                }
+            },
+            popInitialNotification: true,
+          })
       }
 
     createNotification(){
@@ -125,7 +168,6 @@ class NotificationList extends Component<Props, State> {
        }
 
     async navigateToNotificationDetails(data:any,i:any){
-        console.log('go to next page',this.state.notificationDetails[i])
          if(this.state.notificationDetails[i].isRead ==false){
             this.state.notificationDetails[i].readNotificationTime = moment().format('hh:mm - MMM D, YYYY');
             this.setState({unreadNotifications:this.state.unreadNotifications - 1})
@@ -157,7 +199,6 @@ class NotificationList extends Component<Props, State> {
         })
     }
     async showToastAndDeleteNotifications(){
-        // console.log('modal.....',this.state.modal)
         if(this.state.modal == 'deleteAll'){
             ToastAndroid.show(`${this.state.notificationDetails.length}: Messages Deleted`,ToastAndroid.SHORT)
             this.state.notificationDetails=[];
@@ -173,7 +214,6 @@ class NotificationList extends Component<Props, State> {
                 }else{
                     readNotificationsCount = readNotificationsCount + 1
                 }
-                console.log('deleteAllRead....',deleteAllRead)
             })
             this.state.notificationDetails = deleteAllRead;
             await AsyncStorage.setItem('notificationData',JSON.stringify(this.state.notificationDetails));
@@ -209,14 +249,13 @@ class NotificationList extends Component<Props, State> {
       };
       
     render(){
-        console.log("render.this.state.notificationDetails...",this.state.notificationDetails)
-        console.log('moment....',moment())
+        // console.log("render.this.state.notificationDetails...",this.state.notificationDetails)
         return(
             <Container>
                  <Header style={styles.header}>
                         <Left style={styles.headerLeft}>
                             <Text style={{color:'#ffffff',fontSize:21,fontWeight:'bold'}}>{this.state.username}</Text>
-                            {this.state.notificationDetails.length>0 ?
+                            { this.state.notificationDetails && this.state.notificationDetails.length>0 ?
                                 <Text style={{color:'#A9A9A9',fontSize:16,}}>{this.state.notificationDetails.length} ({this.state.unreadNotifications} unread)</Text>
                                    : 
                                    <Text style={{color:'#A9A9A9',fontSize:16,}}>0 (0 unread)</Text>
@@ -269,41 +308,7 @@ class NotificationList extends Component<Props, State> {
                 </View>
             }
            
-             {/* <TouchableOpacity onPress={() => this.navigateToNotificationDetails()}>
-                    <View style={{flexDirection:'row',height:60,backgroundColor:'#E0E0E0',borderBottomColor:'#ffffff',borderBottomWidth:0.4}}>
-                        <Left style={{flex:1}}>
-                           <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:'#000000'}}> </MaterialCommunityIcons>
-                        </Left>
-                        <Body style={{flex:3,flexDirection:'column',flexWrap:'wrap'}}>  
-                            <Text style={styles.text1}>Dummy System</Text>
-                            <Text style={styles.subText1}>Camera:TestCam_1</Text>
-                        </Body>
-                        <Right style={{flex:1.5}}>
-                            <Text style={{color:'#000000',paddingRight:12,fontSize:16,fontWeight:'bold'}}>17:22</Text>
-                        </Right>
-                    </View>
-             </TouchableOpacity> */}
-                {/* </View> */}
-
-                {/* <Modal visible={this.state.menuModal} transparent={true} animationType={'none'}>
-                    <View style={styles.menuModal}>
-                        <Button transparent onPress={()=>this.loginToSystem()}>
-                            <Text style={styles.buttonText}>Login to System</Text>
-                        </Button>
-                        <Button transparent onPress={()=>this.openConfirmationModal('deleteAll')}>
-                            <Text style={styles.buttonText}>Delete All</Text>
-                        </Button>
-                        <Button transparent onPress={()=>this.openConfirmationModal('deleteAllRead')}>
-                            <Text style={styles.buttonText}>Delete All Read</Text>
-                        </Button>
-                        <Button transparent onPress={()=>this.openConfirmationModal('logout')}>
-                            <Text style={styles.buttonText}>Logout</Text>
-                        </Button>
-                    </View>
-                </Modal> */}
                 
-               
-
                 <Modal visible={this.state.confirmationModal} transparent={true} animationType={'none'}>
                     <View style={styles.confirmationModal}>
                         {this.state.modal == 'deleteAll' ? <Text style={styles.confirmText}>Are you sure you want to delete all messages?</Text> : null}

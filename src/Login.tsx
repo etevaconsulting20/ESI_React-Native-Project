@@ -10,7 +10,7 @@ import moment from 'moment';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as testActions from "./actions/TestAction";
-import messaging from 'react-native-firebase/messaging';
+import PushNotification from 'react-native-push-notification'
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -25,6 +25,7 @@ interface  Props extends NavigationScreenProp <void>{
     loginCheckMessage:boolean,
     loginErrorMessage:boolean,
     networkErrorMessage:boolean,
+    serverErrorMessage:boolean
   }
 
   const backend_Endpoint='https://appbackend20180515014638.azurewebsites.net//api/register'
@@ -41,15 +42,25 @@ interface  Props extends NavigationScreenProp <void>{
           loginCheckMessage:false,
           loginErrorMessage:false,
           networkErrorMessage:false,
+          serverErrorMessage:false,
       }
     }
 
     componentWillMount(){
       this.checkUserLogin();
         // this.checkPermission();
-        this.getToken();
+        // this.getToken();
         // this.permission();
+        this.getTokenPN();
         this.firebaseNotificationCheck();
+    }
+    getTokenPN(){
+      PushNotification.configure({
+        onRegister:function(token:any){
+          console.log("TOKEN:...............", token);
+          handle=token.token
+        }
+      })
     }
   async checkUserLogin(){
     const registrationKey =await AsyncStorage.getItem('authenticationKey')
@@ -169,20 +180,27 @@ permission(){
 
       var config= {headers:{"Content-Type":"application/json"}};
 
+    // api call for username password validation
       axios.post(`${backend_Endpoint}?handle=${handle}`,loginModel,config)
         .then((response)=>{
           console.log("response...",response)
-            console.log("registrationId...",response.data)
+            console.log("registrationId........",response.data)
             if(response.data){
-              this.props.navigation.navigate('NotificationList')
+              // this.props.navigation.navigate('NotificationList')
               registrationId=response.data;
               this.saveRegistrationIdAndNavigate(registrationId);
+        //api call for notification registration
               axios.put(`${backend_Endpoint}/${response.data}`,notifRegisModel,config)
               .then((responseData)=>{
                   console.log("responseData...",responseData)
+                  if(responseData.status == 200){
+                    console.log("login...")
+                    this.props.navigation.navigate('NotificationList')
+                  }
               })
               .catch((error)=>{
                 console.log("1error...",error.response)
+                this.setState({loginCheckMessage:false,serverErrorMessage:true,loginFailedModal:true})
               })
             }
         })
@@ -203,7 +221,7 @@ permission(){
       this.setState({password:password})
     }
     closeLoginFailedModal(){
-      this.setState({loginFailedModal:false,networkErrorMessage:false,loginErrorMessage:false})
+      this.setState({loginFailedModal:false,networkErrorMessage:false,loginErrorMessage:false,serverErrorMessage:false})
     }
     testSample(){
       this.props.testActions.testSample('Kashyap');
@@ -262,6 +280,14 @@ permission(){
                     <View style={styles.loginFailedModal}>
                           <Text style={{fontSize:19,fontWeight:'bold'}}>Login Failed: Please check your network connection</Text>
                           <Text style={{fontSize:17,marginTop:20}}>Unable to establish a connection to the remote server, please check your network connection.</Text>
+                          <Button style={{marginTop:20}} transparent onPress={()=>this.closeLoginFailedModal()}>
+                                <Text style={{color:'#009999',fontWeight:'bold',fontSize:16}}>OK</Text>
+                            </Button>
+                    </View>}
+                    {this.state.serverErrorMessage &&
+                    <View style={styles.loginFailedModal}>
+                          <Text style={{fontSize:19,fontWeight:'bold'}}>Login Failed: Server error,contact applcation support</Text>
+                          <Text style={{fontSize:17,marginTop:20}}>Message: 'An error has occurred'</Text>
                           <Button style={{marginTop:20}} transparent onPress={()=>this.closeLoginFailedModal()}>
                                 <Text style={{color:'#009999',fontWeight:'bold',fontSize:16}}>OK</Text>
                             </Button>

@@ -9,6 +9,7 @@ import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import Video  from 'react-native-video';
 import moment from 'moment';
 import firebase from 'react-native-firebase';
+import PushNotification from 'react-native-push-notification'
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -49,14 +50,51 @@ class NotificationDetails extends Component<Props, State> {
      }
 
      getNotificationMessage(){
-      let messageListener = firebase.messaging().onMessage(async (message)=>{
-          if(message){
-              this.createNotification();
-              let obj ={...message.data,isRead:false,readNotificationTime:null};
-              let notificationDetails = [...this.state.notificationDetails , obj]
-              console.log(' notificationDetails...', notificationDetails)
-              await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
+      // let messageListener = firebase.messaging().onMessage(async (message)=>{
+      //     if(message){
+      //         this.createNotification();
+      //         let obj ={...message.data,isRead:false,readNotificationTime:null};
+      //         let notificationDetails = [...this.state.notificationDetails , obj]
+      //         console.log(' notificationDetails...', notificationDetails)
+      //         await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
+      //     }
+      // })
+
+      PushNotification.configure({
+        onNotification:  async function(notification:any) {
+          if(notification.data){
+            console.log('REMOTE NOTIFICATION ==>', notification.data)
+            let data = await AsyncStorage.getItem('notificationData');
+                      if(data != null){
+                          let dataFromStorage:any
+                          dataFromStorage = JSON.parse(data);
+                          console.log('from asyncStoreage in notify...............',dataFromStorage);
+                          let obj ={...notification.data,isRead:false,readNotificationTime:null};
+                          let info=dataFromStorage.push(obj)
+                          console.log('from dataFromStorage in notify...............',dataFromStorage);
+                           AsyncStorage.setItem('notificationData',JSON.stringify(dataFromStorage)); 
+                      }else{
+                          let obj ={...notification.data,isRead:false,readNotificationTime:null};
+                          let notificationInfo=[]
+                          notificationInfo.push(obj)
+                          console.log('from notificationInfo in notify...............',notificationInfo);
+                          AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo)); 
+                      }
+               
+                  PushNotification.localNotification({
+                    autoCancel:true,
+                    title: "Pending Notifications", 
+                  message: "Pending Notifications", 
+                  playSound: true, 
+                  soundName: "default",
+                  invokeApp: true, 
+                  largeIcon:'esi_logo',
+                  smallIcon:'esi_logo',
+                  color:'#00BFFF',
+                  });
           }
+        },
+        popInitialNotification: true,
       })
     }
     createNotification(){
@@ -125,6 +163,7 @@ handleBackButtonClick(){
 }
 refreshPage(){
   // window.location.reload(false)
+  // this.forceUpdate();
 }
 componentWillUnmount(){
   BackHandler.removeEventListener("hardwareBackPress",this.handleBackButtonClick);
@@ -234,17 +273,7 @@ showMenu = () => {
                      <Text style={[styles.buttonText]}>Login to System</Text>
                   </TouchableOpacity>
             </View>
-                 
-            {/* <Modal visible={this.state.menuModal} transparent={true} animationType={'none'}>
-                    <View style={styles.menuModal}>
-                        <Button transparent onPress={()=>this.loginToSystem()}>
-                            <Text style={styles.btnText}>Login to System</Text>
-                        </Button>
-                        <Button transparent onPress={()=>this.openConfirmationModal()}>
-                            <Text style={styles.btnText}>Logout</Text>
-                        </Button>
-                    </View>
-             </Modal> */}
+           
 
              <Modal visible={this.state.confirmationModal} transparent={true} animationType={'none'}>
                     <View style={styles.confirmationModal}>
