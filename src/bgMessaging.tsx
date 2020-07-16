@@ -1,5 +1,5 @@
 // @flow
-import firebase from 'react-native-firebase';
+// import firebase from 'react-native-firebase';
 import { AsyncStorage } from 'react-native';
 import PushNotification from 'react-native-push-notification'
 

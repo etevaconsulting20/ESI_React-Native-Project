@@ -7,7 +7,7 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
-import firebase from 'react-native-firebase';
+// import firebase from 'react-native-firebase';
 import PushNotification from 'react-native-push-notification'
 
 interface  Props extends NavigationScreenProp <void>{
@@ -129,31 +129,31 @@ class NotificationList extends Component<Props, State> {
       }
 
     createNotification(){
-        const channel = new firebase.notifications.Android
-                .Channel('test-channel','Test Channel',firebase.notifications.Android.Importance.High)
-                .setDescription('My apps test channel');
-        firebase.notifications().android.createChannel(channel);
+        // const channel = new firebase.notifications.Android
+        //         .Channel('test-channel','Test Channel',firebase.notifications.Android.Importance.High)
+        //         .setDescription('My apps test channel');
+        // firebase.notifications().android.createChannel(channel);
 
-        const notification = new firebase.notifications.Notification()
-                .setNotificationId('notificationId')
-                .setTitle('Pending Notifications')
-                .setBody('Pending Notifications')
-                .setData({
-                    key1: 'value1',
-                    key2: 'value2',
-                })
-                .setSound('default')
-                .android.setAutoCancel(true)
-                .android.setChannelId('test-channel')
-                .android.setSmallIcon('esi_logo')
-                .android.setColor('#00BFFF')
-                .android.setPriority(firebase.notifications.Android.Priority.Max);
+        // const notification = new firebase.notifications.Notification()
+        //         .setNotificationId('notificationId')
+        //         .setTitle('Pending Notifications')
+        //         .setBody('Pending Notifications')
+        //         .setData({
+        //             key1: 'value1',
+        //             key2: 'value2',
+        //         })
+        //         .setSound('default')
+        //         .android.setAutoCancel(true)
+        //         .android.setChannelId('test-channel')
+        //         .android.setSmallIcon('esi_logo')
+        //         .android.setColor('#00BFFF')
+        //         .android.setPriority(firebase.notifications.Android.Priority.Max);
                 
-        notification.android.setChannelId('test-channel')
-                .android.setSmallIcon('esi_logo');
+        // notification.android.setChannelId('test-channel')
+        //         .android.setSmallIcon('esi_logo');
 
-         //display the notification
-        firebase.notifications().displayNotification(notification);
+        //  //display the notification
+        // firebase.notifications().displayNotification(notification);
     }
 
     getNavigationParams(){

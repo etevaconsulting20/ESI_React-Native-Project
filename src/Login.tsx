@@ -4,14 +4,14 @@ import { StyleSheet,Text, View,ScrollView, Image,Platform, TouchableOpacity, Ale
 import {Item,Icon,Input,Button,Toast, Title, Container, Left, Right, } from 'native-base'
 import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import firebase from 'react-native-firebase';
+// import firebase from 'react-native-firebase';
 import axios from "axios";
 import moment from 'moment';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as testActions from "./actions/TestAction";
 import PushNotification from 'react-native-push-notification'
-
+import PushNotificationIOS from "@react-native-community/push-notification-ios";
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
     testActions: typeof testActions;
@@ -50,17 +50,40 @@ interface  Props extends NavigationScreenProp <void>{
       this.checkUserLogin();
         // this.checkPermission();
         // this.getToken();
-        // this.permission();
+        this.permission();
         this.getTokenPN();
-        this.firebaseNotificationCheck();
+        // this.firebaseNotificationCheck();
     }
     getTokenPN(){
-      PushNotification.configure({
-        onRegister:function(token:any){
-          console.log("TOKEN:...............", token);
-          handle=token.token
-        }
-      })
+     
+        PushNotification.configure({
+          onRegister:function(token:any){
+            console.log("TOKEN:...............", token);
+            handle=token.token
+          },
+          // (required) Called when a remote is received or opened, or local notification is opened
+          onNotification: function (notification:any) {
+            console.log("NOTIFICATION:", notification);
+            Alert.alert("NOTIFICATION:", notification);
+            // process the notification
+        
+            // (required) Called when a remote is received or opened, or local notification is opened
+            notification.finish(PushNotificationIOS.FetchResult.NoData);
+          },
+           // Should the initial notification be popped automatically
+          // default: true
+          popInitialNotification: true,
+        
+          /**
+           * (optional) default: true
+           * - Specified if permissions (ios) and token (android and ios) will requested or not,
+           * - if not, you must call PushNotificationsHandler.requestPermissions() later
+           * - if you are not using remote notification or do not have Firebase installed, use this:
+           *     requestPermissions: Platform.OS === 'ios'
+           */
+          requestPermissions: true,
+        })
+     
     }
   async checkUserLogin(){
     const registrationKey =await AsyncStorage.getItem('authenticationKey')
@@ -70,83 +93,107 @@ interface  Props extends NavigationScreenProp <void>{
       this.props.navigation.navigate('NotificationList')
     }
   }
-    async firebaseNotificationCheck(){
-      const notificationOpen = await firebase.notifications().getInitialNotification();
-      if (notificationOpen) {
-        console.log("notificationOpen.....",notificationOpen)
-        let notificationData=notificationOpen.notification.data
-        this.props.navigation.navigate('NotificationList')
-       }
+    // async firebaseNotificationCheck(){
+    //   const notificationOpen = await firebase.notifications().getInitialNotification();
+    //   if (notificationOpen) {
+    //     console.log("notificationOpen.....",notificationOpen)
+    //     let notificationData=notificationOpen.notification.data
+    //     this.props.navigation.navigate('NotificationList')
+    //    }
 
-       firebase.notifications().onNotificationOpened((notificationOpen) => {
-      if (notificationOpen) {
-        console.log("onNotificationOpened.....",notificationOpen)
-        let notificationData=notificationOpen.notification.data
-       this.props.navigation.navigate('NotificationList')
-       }
-    });
-    }
+    //    firebase.notifications().onNotificationOpened((notificationOpen) => {
+    //   if (notificationOpen) {
+    //     console.log("onNotificationOpened.....",notificationOpen)
+    //     let notificationData=notificationOpen.notification.data
+    //    this.props.navigation.navigate('NotificationList')
+    //    }
+    // });
+    // }
 
 permission(){
-  firebase.messaging().hasPermission()
-  .then(enabled => {
-    if (enabled) {
-      alert('Yes')
-    } else {
-      alert('No')
-    } 
-  });
+ 
+console.log('PushNotificationIOS.requestPermissions')
+  PushNotificationIOS.requestPermissions();
+  PushNotificationIOS.addEventListener('register',this._OnRegister)
+  PushNotificationIOS.addEventListener('registrationError',this._OnRegistrationError)
+  PushNotificationIOS.addEventListener('localNotification',this._OnLocalNotification)
+  PushNotificationIOS.addEventListener('notification',this._OnNotification)
+  // firebase.messaging().hasPermission()
+  // .then(enabled => {
+  //   if (enabled) {
+  //     alert('Yes')
+  //   } else {
+  //     alert('No')
+  //   } 
+  // });
 
-
-  firebase.messaging().getToken()
-  .then(fcmToken => {
-    if (fcmToken) {
-      // user has a device token
-      console.log('token............',fcmToken)
-    } else {
-      // user doesn't have a device token yet
-      console.log('no token............',fcmToken)
-    } 
-  });
 }
-    checkPermission = async () => {
-      const enabled = await firebase.messaging().hasPermission();
-      console.log('enables....',enabled)
-      if(enabled){
-        Alert.alert(
-          'Turn on notifications',
-          'app wants to send you push notifications',
-          [
-            {
-              text:'not now',
-              style:'cancel'
-            },
-            {
-              text:'ok',
-              // onPress: () => this.getToken()
-            }
-          ],
-          {cancelable:false}
-        );
-      }
-    }
+//   firebase.messaging().getToken()
+//   .then(fcmToken => {
+//     if (fcmToken) {
+//       // user has a device token
+//       console.log('token............',fcmToken)
+//     } else {
+//       // user doesn't have a device token yet
+//       console.log('no token............',fcmToken)
+//     } 
+//   });
+// }
+    // checkPermission = async () => {
+    //   const enabled = await firebase.messaging().hasPermission();
+    //   console.log('enables....',enabled)
+    //   if(enabled){
+    //     Alert.alert(
+    //       'Turn on notifications',
+    //       'app wants to send you push notifications',
+    //       [
+    //         {
+    //           text:'not now',
+    //           style:'cancel'
+    //         },
+    //         {
+    //           text:'ok',
+    //           // onPress: () => this.getToken()
+    //         }
+    //       ],
+    //       {cancelable:false}
+    //     );
+    //   }
+    // }
 
-    getToken = async () =>{
-       const token =await  firebase.messaging().getToken();
-          handle = token;
-          console.log('handle token............',handle)
-          //    firebase.messaging().getToken()
-          // .then(fcmToken => {
-          //   console.log('fcmToken............',fcmToken)
-          //   if (fcmToken) {
-          //     console.log('token............',fcmToken)
-          //   } else {
-          //     // user doesn't have a device token yet
-          //   } 
-          // });
+    // getToken = async () =>{
+    //    const token =await  firebase.messaging().getToken();
+    //       handle = token;
+    //       console.log('handle token............',handle)
+    //       //    firebase.messaging().getToken()
+    //       // .then(fcmToken => {
+    //       //   console.log('fcmToken............',fcmToken)
+    //       //   if (fcmToken) {
+    //       //     console.log('token............',fcmToken)
+    //       //   } else {
+    //       //     // user doesn't have a device token yet
+    //       //   } 
+    //       // });
       
+    // }
+    _OnRegister=(deviceToken: any)=>{
+        console.log('deviceToken',deviceToken)
+        Alert.alert('deviceToken',deviceToken)
     }
+    _OnRegistrationError=(Error: any)=>{
+      console.log('Error',Error)
+      Alert.alert('Error',Error)
+    }
+    _OnLocalNotification=(localNotification: any)=>{
+      console.log('localNotification',localNotification)
+      Alert.alert('localNotification',localNotification);
 
+    }
+    _OnNotification=(notif: any)=>{
+      console.log('_OnNotification',notif)
+      Alert.alert('_OnNotification',notif);
+
+    }
     navigateToNotificationList(){
         // this.setState({loginFailedModal:true})
         this.setState({loginCheckMessage:true})
@@ -189,7 +236,7 @@ permission(){
               // this.props.navigation.navigate('NotificationList')
               registrationId=response.data;
               this.saveRegistrationIdAndNavigate(registrationId);
-        //api call for notification registration
+              //api call for notification registration
               axios.put(`${backend_Endpoint}/${response.data}`,notifRegisModel,config)
               .then((responseData)=>{
                   console.log("responseData...",responseData)
