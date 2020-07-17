@@ -113,11 +113,14 @@ interface  Props extends NavigationScreenProp <void>{
 permission(){
  
 console.log('PushNotificationIOS.requestPermissions')
+if(Platform.os=='ios'){
   PushNotificationIOS.requestPermissions();
   PushNotificationIOS.addEventListener('register',this._OnRegister)
   PushNotificationIOS.addEventListener('registrationError',this._OnRegistrationError)
   PushNotificationIOS.addEventListener('localNotification',this._OnLocalNotification)
   PushNotificationIOS.addEventListener('notification',this._OnNotification)
+}
+
   // firebase.messaging().hasPermission()
   // .then(enabled => {
   //   if (enabled) {
