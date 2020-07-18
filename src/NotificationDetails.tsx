@@ -8,7 +8,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import Video  from 'react-native-video';
 import moment from 'moment';
-// import firebase from 'react-native-firebase';
 import PushNotification from 'react-native-push-notification'
 
 interface  Props extends NavigationScreenProp <void>{
@@ -50,16 +49,6 @@ class NotificationDetails extends Component<Props, State> {
      }
 
      getNotificationMessage(){
-      // let messageListener = firebase.messaging().onMessage(async (message)=>{
-      //     if(message){
-      //         this.createNotification();
-      //         let obj ={...message.data,isRead:false,readNotificationTime:null};
-      //         let notificationDetails = [...this.state.notificationDetails , obj]
-      //         console.log(' notificationDetails...', notificationDetails)
-      //         await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
-      //     }
-      // })
-
       PushNotification.configure({
         onNotification:  async function(notification:any) {
           if(notification.data){
@@ -68,16 +57,16 @@ class NotificationDetails extends Component<Props, State> {
                       if(data != null){
                           let dataFromStorage:any
                           dataFromStorage = JSON.parse(data);
-                          console.log('from asyncStoreage in notify...............',dataFromStorage);
+                          console.log('asyncStoreage...............',dataFromStorage);
                           let obj ={...notification.data,isRead:false,readNotificationTime:null};
                           let info=dataFromStorage.push(obj)
-                          console.log('from dataFromStorage in notify...............',dataFromStorage);
+                          console.log('dataToStore...............',dataFromStorage);
                            AsyncStorage.setItem('notificationData',JSON.stringify(dataFromStorage)); 
                       }else{
                           let obj ={...notification.data,isRead:false,readNotificationTime:null};
                           let notificationInfo=[]
                           notificationInfo.push(obj)
-                          console.log('from notificationInfo in notify...............',notificationInfo);
+                          console.log('notificationInfo ...............',notificationInfo);
                           AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo)); 
                       }
                
@@ -97,33 +86,7 @@ class NotificationDetails extends Component<Props, State> {
         popInitialNotification: true,
       })
     }
-    createNotification(){
-      // const channel = new firebase.notifications.Android
-      //         .Channel('test-channel','Test Channel',firebase.notifications.Android.Importance.High)
-      //         .setDescription('My apps test channel');
-      // firebase.notifications().android.createChannel(channel);
-
-      // const notification = new firebase.notifications.Notification()
-      //         .setNotificationId('notificationId')
-      //         .setTitle('Pending Notifications')
-      //         .setBody('Pending Notifications')
-      //         .setData({
-      //             key1: 'value1',
-      //             key2: 'value2',
-      //         })
-      //         .setSound('default')
-      //         .android.setAutoCancel(true)
-      //         .android.setChannelId('test-channel')
-      //         .android.setSmallIcon('esi_logo')
-      //         .android.setColor('#00BFFF')
-      //         .android.setPriority(firebase.notifications.Android.Priority.Max);
-              
-      // notification.android.setChannelId('test-channel')
-      //         .android.setSmallIcon('esi_logo');
-
-      //  //display the notification
-      // firebase.notifications().displayNotification(notification);
-  }
+  
      openMenuModal(){
       this.setState({
           menuModal:true
@@ -184,15 +147,12 @@ showMenu = () => {
   if(notificationData != null){
       dataFromStorage = JSON.parse(notificationData);
      dataFromStorage.splice(this.state.index,1)
-      console.log('dataToStorage.after delete..............',dataFromStorage);
       await AsyncStorage.setItem('notificationData',JSON.stringify(dataFromStorage));
       this.props.navigation.navigate('NotificationList');
       ToastAndroid.show('Message Deleted',ToastAndroid.SHORT)
   }
 }
-
     render(){
-      console.log(moment().format('hh:mm - MMM D YYYY'));
         return(
             <Container>
                 <NavigationEvents
@@ -222,16 +182,12 @@ showMenu = () => {
 
                       <View>
                         <Video style={styles.videoView}
-                        //  video={{ uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' }}
-                        //  videoWidth={250}
-                        //  videoHeight={250}
                         thumbnail={{ uri: 'https://www.ethersec.com/SafeServe/ServerPhP/UI/images/PNG_Imgs/ESI_Logo.png' }}
                           source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
                           resizeMode={"cover"}
                           controls
                         />
-                            {/* <Text style={{color:'lightblue'}}>Message:</Text>
-                            <Text style={styles.text}>Detection ALert</Text> */}
+                            
                         </View>
 
                       <View style={styles.view}>
@@ -246,7 +202,6 @@ showMenu = () => {
                           <Text style={styles.textDesc}>{this.state.navigationParams.systemId}</Text>
                           <Text style={styles.textDesc}>Camera: {this.state.navigationParams.cameraId}</Text>
                         </View>
-                           {/* <Text style={styles.text}>Camera:4</Text> */}
                         </View>
                       </View>
 
@@ -264,9 +219,7 @@ showMenu = () => {
                       </View>
 
                   </View> 
-                  {/* <Image source={require('../assets/esi_logo.xml')} style={{height:50,width:50}}></Image> */}
-                  {/* <Image source={{uri:'D:/NavigationSample/EsiApp/ESI_React-Native-Project/assets/esi_logo.xml'}} style={{height:50,width:50}}></Image> */}
-            </ScrollView>
+                  </ScrollView>
 
             <View style={{  backgroundColor:'#000000',}}>
                <TouchableOpacity  style={styles.button} onPress={()=>this.loginToSystem()}>

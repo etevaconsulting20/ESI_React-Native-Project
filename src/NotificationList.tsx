@@ -7,7 +7,6 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
-// import firebase from 'react-native-firebase';
 import PushNotification from 'react-native-push-notification'
 
 interface  Props extends NavigationScreenProp <void>{
@@ -43,7 +42,6 @@ class NotificationList extends Component<Props, State> {
     }
 
      componentWillMount(){
-        // this.getNavigationParams();
         this.getUsernameFromStorage();
         this.getNotificationDataFromStorage();
       this.getNotificationMessage();
@@ -76,17 +74,6 @@ class NotificationList extends Component<Props, State> {
      
       getNotificationMessage(){
         let notificationDetails=this.state.notificationDetails
-        //firebase
-                // let messageListener = firebase.messaging().onMessage(async (message)=>{
-                //     if(message){
-                //         this.createNotification();
-                //         let obj ={...message.data,isRead:false,readNotificationTime:null};
-                //         let notificationDetails = [...this.state.notificationDetails , obj]
-                //         console.log(' notificationDetails...', notificationDetails)
-                //         await AsyncStorage.setItem('notificationData',JSON.stringify(notificationDetails));
-                //         this.getNotificationDataFromStorage();
-                //     }
-                // })
         
      //push notification
           PushNotification.configure({
@@ -100,15 +87,14 @@ class NotificationList extends Component<Props, State> {
                                   console.log('asyncStoreage...............',dataFromStorage);
                                   let obj ={...notification.data,isRead:false,readNotificationTime:null};
                                    dataFromStorage.push(obj)
-                                  console.log('dataFromStorage ..............',dataFromStorage);
+                                  console.log('dataToStore ..............',dataFromStorage);
                                     AsyncStorage.setItem('notificationData',JSON.stringify(dataFromStorage)); 
-                                  
                               }else{
                                   let obj ={...notification.data,isRead:false,readNotificationTime:null};
                                   let notificationInfo=[]
                                   notificationInfo.push(obj)
                                   console.log(' notificationInfo...............',notificationInfo);
-                                  AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo)); 
+                                  AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo));
                               }
                          
                           PushNotification.localNotification({
@@ -122,50 +108,13 @@ class NotificationList extends Component<Props, State> {
                               smallIcon:'esi_logo',
                               color:'#00BFFF',
                           });
+                          
                 }
             },
+
             popInitialNotification: true,
           })
       }
-
-    createNotification(){
-        // const channel = new firebase.notifications.Android
-        //         .Channel('test-channel','Test Channel',firebase.notifications.Android.Importance.High)
-        //         .setDescription('My apps test channel');
-        // firebase.notifications().android.createChannel(channel);
-
-        // const notification = new firebase.notifications.Notification()
-        //         .setNotificationId('notificationId')
-        //         .setTitle('Pending Notifications')
-        //         .setBody('Pending Notifications')
-        //         .setData({
-        //             key1: 'value1',
-        //             key2: 'value2',
-        //         })
-        //         .setSound('default')
-        //         .android.setAutoCancel(true)
-        //         .android.setChannelId('test-channel')
-        //         .android.setSmallIcon('esi_logo')
-        //         .android.setColor('#00BFFF')
-        //         .android.setPriority(firebase.notifications.Android.Priority.Max);
-                
-        // notification.android.setChannelId('test-channel')
-        //         .android.setSmallIcon('esi_logo');
-
-        //  //display the notification
-        // firebase.notifications().displayNotification(notification);
-    }
-
-    getNavigationParams(){
-        if(this.props.navigation.state.params != undefined){
-          let initData = this.props.navigation.state.params.initData;
-          this.setState({notificationDetails:initData})
-          console.log("details.........",initData)
-        }
-        else{
-          this.state.navigationParams = null
-        }
-       }
 
     async navigateToNotificationDetails(data:any,i:any){
          if(this.state.notificationDetails[i].isRead ==false){
