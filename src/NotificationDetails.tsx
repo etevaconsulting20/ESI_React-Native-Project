@@ -51,6 +51,7 @@ class NotificationDetails extends Component<Props, State> {
      getNotificationMessage(){
       PushNotification.configure({
         onNotification:  async function(notification:any) {
+          console.log('REMOTE NOTIFICATION ==>')
           if(notification.data){
             console.log('REMOTE NOTIFICATION ==>', notification.data)
             let data = await AsyncStorage.getItem('notificationData');
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
   buttonText:{
     // width: 230,
     height: 24,
-    fontFamily: "CeraPro-Medium",
+    // fontFamily: "CeraPro-Medium",
     fontSize: 20,
     lineHeight: 24,
     letterSpacing: -0.41,

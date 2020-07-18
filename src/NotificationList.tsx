@@ -1,6 +1,6 @@
 
 import React, {Component} from 'react';
-import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, Modal,ToastAndroid, Dimensions, Linking, TouchableWithoutFeedback, AsyncStorage} from 'react-native';
+import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, Modal,ToastAndroid, Dimensions, Linking, TouchableWithoutFeedback, AsyncStorage, SafeAreaView, RefreshControl} from 'react-native';
 import {Item,Input,Toast, Title, Header, Left, Right, Body, Button, CheckBox, Container} from 'native-base'
 import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
@@ -8,6 +8,9 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import moment from 'moment';
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import PushNotification from 'react-native-push-notification'
+import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import * as _ from 'lodash';
+import NotificationDetails from './NotificationDetails';
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -22,6 +25,7 @@ interface  Props extends NavigationScreenProp <void>{
       notificationDetails:any,
       unreadNotifications:any,
       username:any,
+      refreshing:boolean
   }
 
 class NotificationList extends Component<Props, State> {
@@ -38,6 +42,7 @@ class NotificationList extends Component<Props, State> {
          notificationDetails:[],
          unreadNotifications:null,
          username:null,
+         refreshing:false
       }
     }
 
@@ -67,13 +72,13 @@ class NotificationList extends Component<Props, State> {
                 }
             })
             this.setState({notificationDetails:dataFromStorage,unreadNotifications:count})
-            // return JSON.parse(data);
         }
        
       }
      
       getNotificationMessage(){
         let notificationDetails=this.state.notificationDetails
+ 
         
      //push notification
           PushNotification.configure({
@@ -97,18 +102,17 @@ class NotificationList extends Component<Props, State> {
                                   AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo));
                               }
                          
-                          PushNotification.localNotification({
-                              autoCancel:true,
-                                title: "Pending Notifications", 
-                              message: "Pending Notifications", 
-                              playSound: true, 
-                              soundName: "default",
-                              invokeApp: true, 
-                              largeIcon:'esi_logo',
-                              smallIcon:'esi_logo',
-                              color:'#00BFFF',
-                          });
-                          
+                        //   PushNotification.localNotification({
+                        //       autoCancel:true,
+                        //         title: "Pending Notifications", 
+                        //       message: "Pending Notifications", 
+                        //       playSound: true, 
+                        //       soundName: "default",
+                        //       invokeApp: true, 
+                        //       largeIcon:'esi_logo',
+                        //       smallIcon:'esi_logo',
+                        //       color:'#00BFFF',
+                        //   });
                 }
             },
 
@@ -196,10 +200,39 @@ class NotificationList extends Component<Props, State> {
       showMenu = () => {
         this._menu.show();
       };
-      
+      onRefresh=()=>{
+       
+        PushNotificationIOS.getDeliveredNotifications(this._callback);
+      this.setState({refreshing:false});
+      }
+      _callback=(Notification:any)=>{
+        console.log('getDeliveredNotifications',Notification);
+        if(Notification.length>0){ 
+            let notificationInfo:any=[]
+
+        _.forEach(Notification,(a)=>{
+            let notifobj=a.userInfo
+            let obj ={...notifobj,isRead:false,readNotificationTime:null};
+           
+            notificationInfo.push(obj)
+            console.log(' notificationInfo...............',notificationInfo);
+        })
+        AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo));
+        
+        this.getNotificationDataFromStorage();
+           
+        }
+      }
     render(){
-        // console.log("render.this.state.notificationDetails...",this.state.notificationDetails)
         return(
+            <SafeAreaView>
+            <ScrollView
+              contentContainerStyle={styles.scrollView}
+              refreshControl={
+                <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />
+              }
+            >
+           
             <Container>
                  <Header style={styles.header}>
                         <Left style={styles.headerLeft}>
@@ -207,7 +240,7 @@ class NotificationList extends Component<Props, State> {
                             { this.state.notificationDetails && this.state.notificationDetails.length>0 ?
                                 <Text style={{color:'#A9A9A9',fontSize:16,}}>{this.state.notificationDetails.length} ({this.state.unreadNotifications} unread)</Text>
                                    : 
-                                   <Text style={{color:'#A9A9A9',fontSize:16,}}>0 (0 unread)</Text>
+                                   <Text style={{color:'#A9A9A9',fontSize:16,}}></Text>
                               }
                             </Left>
                         <Right style={styles.headerRight}>
@@ -234,16 +267,16 @@ class NotificationList extends Component<Props, State> {
                  {/* <View style={{backgroundColor:'#383838'}}> */}
                 {this.state.notificationDetails && this.state.notificationDetails.length > 0 ? this.state.notificationDetails.map((data:any,i:any)=>(
                     <TouchableOpacity key={i} onPress={() => this.navigateToNotificationDetails(data,i)}>
-                    <View style={{flexDirection:'row',height:63,backgroundColor:data.isRead ?'#E0E0E0':'#383838', borderBottomColor:data.isRead ? '#808080' : '#ffffff',borderBottomWidth:0.4}}>
+                    <View style={{flexDirection:'row',height:120,backgroundColor:data.isRead ?'#E0E0E0':'#787878', borderBottomColor:data.isRead ? '#808080' : '#ffffff',borderBottomWidth:0.4}}>
                         <Left style={{flex:1}}>
-                            <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:data.isRead ? '#000000' : '#ffffff'}}> </MaterialCommunityIcons>
+                            <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:data.isRead ? '#00376c': '#800000' }}> </MaterialCommunityIcons>
                         </Left>
                         <Body style={{flex:3,flexDirection:'column',flexWrap:'wrap'}}>  
                               <Text style={data.isRead ? styles.text1 : styles.text}>{data.systemId}</Text>
                              <Text style={data.isRead ? styles.subText1 : styles.subText}>Camera: {data.cameraId}</Text>
                         </Body>
                         <Right style={{flex:1.5}}>
-                            <Text style={{color:data.isRead ? '#000000' : '#1E90FF',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>
+                            <Text style={{color:data.isRead ? '#000000' : '#00376c',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>
                                      {moment(moment.unix(data.dateTimeAlarm/1000).format("MM/DD/YYYY")).isBefore(moment().format("MM/DD/YYYY")) 
                                        ? `${moment.unix(data.dateTimeAlarm/1000).format('ddd hh:mm')}`  
                                        :  `${moment.unix(data.dateTimeAlarm/1000).format('hh:mm')}` }
@@ -318,6 +351,8 @@ class NotificationList extends Component<Props, State> {
 
               </ScrollView>
              </Container>
+             </ScrollView>
+          </SafeAreaView>
         )
     }
 }
@@ -346,9 +381,9 @@ class NotificationList extends Component<Props, State> {
     },
     subText:{color:'#ffffff',fontSize:15,fontWeight:'bold'},
     text1:{
-        color:'#000000',fontSize:20,fontWeight:'normal',fontStyle:'italic'
+        color:'#000000',fontSize:20,fontWeight:'normal'
     },
-    subText1:{ color:'#000000',fontSize:15,fontWeight:'normal',fontStyle:'italic'},
+    subText1:{ color:'#000000',fontSize:15,fontWeight:'normal'},
     menuModal: {  
         alignSelf:'flex-end',
         backgroundColor : "#ffffff",   

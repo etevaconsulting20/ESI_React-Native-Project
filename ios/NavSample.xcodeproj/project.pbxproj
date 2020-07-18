@@ -678,7 +678,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.b8.esi-notifications";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.b8.esi-notifications.NavSample";
 				PRODUCT_NAME = NavSample;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -702,7 +702,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.b8.esi-notifications";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.b8.esi-notifications.NavSample";
 				PRODUCT_NAME = NavSample;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

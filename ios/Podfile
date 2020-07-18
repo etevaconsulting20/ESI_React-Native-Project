@@ -63,7 +63,7 @@ target 'NavSample' do
   pod 'React-RCTVibration', :path => '../node_modules/react-native/Libraries/Vibration'
   pod 'React-RCTWebSocket', :path => '../node_modules/react-native/Libraries/WebSocket'
   # pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-community/async-storage'
-  
+  pod 'react-native-video', :path => '../node_modules/react-native-video'
   pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
   pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
   pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'

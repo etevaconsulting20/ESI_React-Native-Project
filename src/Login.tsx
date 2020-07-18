@@ -50,6 +50,8 @@ class Login extends Component<Props, State> {
     this.permission();
     this.getTokenPN();
   }
+ 
+  
 //get token
   getTokenPN() {
     PushNotification.configure({
@@ -98,6 +100,7 @@ class Login extends Component<Props, State> {
 
   _OnRegister = (deviceToken: any) => {
     console.log('deviceToken', deviceToken)
+    // Alert.alert('deviceToken', deviceToken)
   }
 
   _OnRegistrationError = (Error: any) => {
@@ -110,6 +113,7 @@ class Login extends Component<Props, State> {
 
   _OnNotification = (notif: any) => {
     console.log('_OnNotification', notif)
+    
   }
 
   navigateToNotificationList() {
@@ -128,11 +132,11 @@ class Login extends Component<Props, State> {
       Password: this.state.password
     }
 
-    const deviceInfo = {
-      Username: this.state.username,
-      Password: this.state.password,
-      Platform: 'gcm',
-      Handle: handle
+    const deviceInfo={
+      Username:this.state.username,
+      Password:this.state.password,
+      Platform: Platform.OS=='ios'?'apns':'gcm',
+      Handle:handle
     }
 
     const loginModel = JSON.stringify(authInfo);
@@ -256,80 +260,80 @@ class Login extends Component<Props, State> {
 
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  button: {
-    width: 298,
-    height: 48,
-    borderRadius: 5,
-    backgroundColor: "#1E90FF",
-    alignSelf: 'center',
-    textAlign: 'center',
-    marginTop: '5%'
-  },
-  buttonText: {
-    width: 230,
-    height: 24,
-    fontFamily: "CeraPro-Medium",
-    fontSize: 17,
-    lineHeight: 24,
-    letterSpacing: -0.41,
-    // color: "#000000",
-    textAlign: 'center',
-    marginLeft: 35,
-    marginTop: 11,
-    marginBottom: 11
-  },
-  formItem: {
-    // marginTop:22,
-    alignSelf: 'center',
-    width: 298,
-    height: 48,
-    // borderRadius: 40,
-  },
-  formItemInput: {
-    ...Platform.select({
-      ios: {
-        flex: 1,
-        alignSelf: 'center',
-        fontFamily: "CeraPro-Regular",
-        fontSize: 16,
-        fontWeight: "500",
-        // fontStyle: "italic",
-        color: "#000000"
-      },
-      android: {
-        alignSelf: 'center',
-        paddingBottom: 10,
-        fontFamily: "CeraPro-Regular",
-        width: 300,
-        height: 'auto',
-        fontSize: 20,
-        fontWeight: "500",
-        // fontStyle: "italic",
-        lineHeight: 20,
-        letterSpacing: 0.05,
-        color: "#000000"
-      }
-    })
-  },
-  loginFailedModal: {
-    justifyContent: 'center',
-    // alignItems:'center',
-    alignSelf: 'center',
-    padding: 20,
-    backgroundColor: "#ffffff",
-    height: 'auto',
-    width: '85%',
-    borderRadius: 3,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    elevation: 20,
-    top: Dimensions.get('window').height / 3
-  },
-  image: { height: 150, width: 150, margin: 15, alignSelf: 'center' },
-});
+    scrollView: {
+      backgroundColor: Colors.lighter,
+    },
+    button : {
+      width: 298,
+      height: 48,
+      borderRadius: 5,
+      backgroundColor: "#1E90FF",
+      alignSelf:'center',
+      textAlign:'center',
+      marginTop:'5%'
+    },
+    buttonText:{
+      width: 230,
+      height: 24,
+      // fontFamily: "CeraPro-Medium",
+      fontSize: 17,
+      lineHeight: 24,
+      letterSpacing: -0.41,
+      // color: "#000000",
+      textAlign:'center',
+      marginLeft:35,
+      marginTop:11,
+      marginBottom:11
+    },
+    formItem:{
+      // marginTop:22,
+     alignSelf:'center',
+      width: 298,
+      height: 48,
+      // borderRadius: 40,
+    },
+    formItemInput:{
+      ...Platform.select({
+        ios: {
+          flex:1,
+          alignSelf:'center',
+          // fontFamily: "CeraPro-Regular", 
+          fontSize: 16,
+          fontWeight: "500",
+          // fontStyle: "italic",
+          color: "#000000"
+        },
+        android: {
+          alignSelf:'center',
+          paddingBottom:10,
+          fontFamily: "CeraPro-Regular",
+          width: 300,
+          height: 'auto',
+          fontSize: 20,
+          fontWeight: "500",
+          // fontStyle: "italic",
+          lineHeight: 20,
+          letterSpacing: 0.05,
+          color: "#000000"
+            }
+      })
+    },
+    loginFailedModal:{
+      justifyContent:'center',
+      // alignItems:'center',
+      alignSelf:'center',
+      padding:20,
+      backgroundColor : "#ffffff",
+      height: 'auto' ,  
+      width: '85%',  
+      borderRadius:3,  
+      borderWidth: 1,  
+      borderColor: '#ccc',    
+      elevation:20,
+      top:Dimensions.get('window').height/3
+       },
+     image:{height:150,width:150,margin:15,alignSelf:'center'},
+  });
 
 const mapStateToProps = ({ testReducer }) => {
   return {
