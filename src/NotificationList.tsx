@@ -27,7 +27,7 @@ interface  Props extends NavigationScreenProp <void>{
       username:any,
       refreshing:boolean
   }
-
+let timer: any;
 class NotificationList extends Component<Props, State> {
     _menu = null;
     constructor(props:any) {
@@ -50,7 +50,16 @@ class NotificationList extends Component<Props, State> {
         this.getUsernameFromStorage();
         this.getNotificationDataFromStorage();
       this.getNotificationMessage();
-     
+     console.log('....................component will mount')
+      }
+      componentDidMount(){
+        timer = setInterval(()=>{
+            this.getNotificationDataFromStorage();
+        },3000)
+      }
+      componentWillUnmount(){
+        console.log(".............component will unmount")
+          clearInterval(timer)
       }
    
       async getUsernameFromStorage(){
@@ -259,8 +268,16 @@ class NotificationList extends Component<Props, State> {
             <ScrollView>
                 {/* <NavigationEvents 
             onWillFocus={payload => {
-                this.getNotificationDataFromStorage();
-                this.getNotificationMessage();
+                // this.getNotificationDataFromStorage();
+                // this.getNotificationMessage();
+                console.log(".............will focus")
+                timer = setInterval(()=>{
+                    this.getNotificationDataFromStorage();
+                },2000)
+            }}
+            onWillBlur={()=>{
+                console.log(".............will blur")
+                clearInterval(timer);
             }}
             /> */}
                    

@@ -182,13 +182,17 @@ showMenu = () => {
                     <View style={styles.container}>
 
                       <View>
-                        <Video style={styles.videoView}
-                        thumbnail={{ uri: 'https://www.ethersec.com/SafeServe/ServerPhP/UI/images/PNG_Imgs/ESI_Logo.png' }}
-                          source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
+                          {/* <Video style={styles.videoView}
+                          thumbnail={{ uri: 'https://www.ethersec.com/SafeServe/ServerPhP/UI/images/PNG_Imgs/ESI_Logo.png' }}
+                            source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
                           resizeMode={"cover"}
-                          controls
-                        />
-                            
+                            controls
+                          /> */}
+                      <Image 
+                            source={{uri: 'https://38.media.tumblr.com/9e9bd08c6e2d10561dd1fb4197df4c4e/tumblr_mfqekpMktw1rn90umo1_500.gif'}}  
+                            style={styles.videoView}
+                      />
+                     
                         </View>
 
                       <View style={styles.view}>
@@ -219,6 +223,7 @@ showMenu = () => {
                         </View>
                       </View>
 
+                    
                   </View> 
                   </ScrollView>
 
