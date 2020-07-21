@@ -50,15 +50,23 @@ class NotificationList extends Component<Props, State> {
         this.getUsernameFromStorage();
         this.getNotificationDataFromStorage();
       this.getNotificationMessage();
-     console.log('....................component will mount')
+    //  console.log('....................component will mount')
       }
       componentDidMount(){
         timer = setInterval(()=>{
-            this.getNotificationDataFromStorage();
-        },3000)
+            console.log(".............setInterval")
+            if(Platform.OS == 'ios'){
+                console.log("............ios.setInterval")
+                PushNotificationIOS.getDeliveredNotifications(this._callback);
+                this.getNotificationDataFromStorage();
+            }else{
+                this.getNotificationDataFromStorage();
+            }
+            
+        },10000)
       }
       componentWillUnmount(){
-        console.log(".............component will unmount")
+        // console.log(".............component will unmount")
           clearInterval(timer)
       }
    
@@ -73,7 +81,7 @@ class NotificationList extends Component<Props, State> {
         if(data != null){
             let dataFromStorage:any
             dataFromStorage = JSON.parse(data);
-            console.log('from asyncStoreage...............',dataFromStorage);
+            // console.log('from asyncStoreage...............',dataFromStorage);
             let count=0;
             dataFromStorage.map((data:any,i:any)=>{
                 if(data.isRead == false){
@@ -87,27 +95,25 @@ class NotificationList extends Component<Props, State> {
      
       getNotificationMessage(){
         let notificationDetails=this.state.notificationDetails
- 
-        
-     //push notification
+        //push notification
           PushNotification.configure({
             onNotification:  async function(notification:any) {
                 if(notification.data){
-                    console.log('REMOTE NOTIFICATION ==>', notification.data)
+                    // console.log('REMOTE NOTIFICATION ==>', notification.data)
                     let data = await AsyncStorage.getItem('notificationData');
                               if(data != null){
                                   let dataFromStorage:any
                                   dataFromStorage = JSON.parse(data);
-                                  console.log('asyncStoreage...............',dataFromStorage);
+                                //   console.log('asyncStoreage...............',dataFromStorage);
                                   let obj ={...notification.data,isRead:false,readNotificationTime:null};
                                    dataFromStorage.push(obj)
-                                  console.log('dataToStore ..............',dataFromStorage);
+                                //   console.log('dataToStore ..............',dataFromStorage);
                                     AsyncStorage.setItem('notificationData',JSON.stringify(dataFromStorage)); 
                               }else{
                                   let obj ={...notification.data,isRead:false,readNotificationTime:null};
                                   let notificationInfo=[]
                                   notificationInfo.push(obj)
-                                  console.log(' notificationInfo...............',notificationInfo);
+                                //   console.log(' notificationInfo...............',notificationInfo);
                                   AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo));
                               }
                          
@@ -211,25 +217,55 @@ class NotificationList extends Component<Props, State> {
       };
       onRefresh=()=>{
        
-        PushNotificationIOS.getDeliveredNotifications(this._callback);
+        // PushNotificationIOS.getDeliveredNotifications(this._callback);
       this.setState({refreshing:false});
       }
-      _callback=(Notification:any)=>{
-        console.log('getDeliveredNotifications',Notification);
+      _callback=async (Notification:any)=>{
+        let data:any= await AsyncStorage.getItem('notificationData');
+        let parseData:any=[]
+        parseData=JSON.parse(data)
+        console.log("............_callback",Notification,parseData)
         if(Notification.length>0){ 
-            let notificationInfo:any=[]
+            let notificationInfodata:any=[]
+            _.forEach(Notification,(a)=>{
+                let notifobj=a.userInfo;
+                notificationInfodata.push(notifobj)
+            })
+            let Excluded:any;
 
-        _.forEach(Notification,(a)=>{
-            let notifobj=a.userInfo
-            let obj ={...notifobj,isRead:false,readNotificationTime:null};
+            let data1:any=[]
+             if(parseData!=null){
+                Excluded = _.differenceBy(notificationInfodata,parseData,'dateTimeAlarm');
+                console.log('Excluded',Excluded)
+                let excludedArray=_.clone(Excluded)
+                if(excludedArray.length>0){ 
+                    _.forEach(excludedArray,(ab)=>{
+                        let obj ={...ab,isRead:false,readNotificationTime:null};
+                        data1.push(obj)
+                        console.log(' Excluded..',ab);
+                    })
+                    data1=_.concat(parseData,data1)
+                AsyncStorage.setItem('notificationData',JSON.stringify(data1));
+                Excluded=[];
+                }
+
+             }else{
+                Excluded=notificationInfodata
+                _.forEach(notificationInfodata,(ab)=>{
+                    let obj ={...ab,isRead:false,readNotificationTime:null};
+                    data1.push(obj)
+                    console.log(' Excluded..',ab);
+                })
+                AsyncStorage.setItem('notificationData',JSON.stringify(data1));
+                Excluded=[];
+             }
+            
+            
+            
+            
            
-            notificationInfo.push(obj)
-            console.log(' notificationInfo...............',notificationInfo);
-        })
-        AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo));
-        
-        this.getNotificationDataFromStorage();
-           
+            this.getNotificationDataFromStorage();
+        // PushNotificationIOS.removeAllDeliveredNotifications();
         }
       }
     render(){

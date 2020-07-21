@@ -62,7 +62,7 @@ target 'NavSample' do
   pod 'React-RCTText', :path => '../node_modules/react-native/Libraries/Text'
   pod 'React-RCTVibration', :path => '../node_modules/react-native/Libraries/Vibration'
   pod 'React-RCTWebSocket', :path => '../node_modules/react-native/Libraries/WebSocket'
-  # pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-community/async-storage'
+  pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-community/async-storage'
   pod 'react-native-video', :path => '../node_modules/react-native-video'
   pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
   pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
@@ -73,7 +73,7 @@ target 'NavSample' do
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
   pod 'yoga', path: "./../node_modules/react-native/ReactCommon/yoga/yoga.podspec", :modular_headers => true
-  
+  pod 'react-native-branch', :path => '../node_modules/react-native-branch'
   # pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
    pod 'RNCPushNotificationIOS', :path => '../node_modules/@react-native-community/push-notification-ios'
   # pod 'RNAzureNotificationHub', :podspec => '../node_modules/react-native-azurenotificationhub/RNAzureNotificationHub.podspec'

@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   buttonText:{
     // width: 230,
     height: 24,
-    fontFamily: "CeraPro-Medium",
+    // fontFamily: "CeraPro-Medium",
     fontSize: 20,
     lineHeight: 24,
     letterSpacing: -0.41,
