@@ -147,13 +147,13 @@ class Login extends Component<Props, State> {
         console.log("registrationId........", response.data)
         if (response.data) {
           registrationId = response.data;
-          this.saveRegistrationId(registrationId);
           //api call for notification registration
           axios.put(`${backend_Endpoint}/${response.data}`, notifRegisModel, config)
             .then((responseData) => {
               console.log("responseData...", responseData)
               if (responseData.status == 200) {
                 console.log("login successfull...")
+                this.saveRegistrationId(registrationId);
                 ToastAndroid.show('Logged in and registered', ToastAndroid.SHORT)
                 this.props.navigation.navigate('NotificationList')
               }

@@ -51,7 +51,6 @@ class NotificationDetails extends Component<Props, State> {
      getNotificationMessage(){
       PushNotification.configure({
         onNotification:  async function(notification:any) {
-          console.log('REMOTE NOTIFICATION ==>')
           if(notification.data){
             console.log('REMOTE NOTIFICATION ==>', notification.data)
             let data = await AsyncStorage.getItem('notificationData');
@@ -182,17 +181,12 @@ showMenu = () => {
                     <View style={styles.container}>
 
                       <View>
-                          {/* <Video style={styles.videoView}
-                          thumbnail={{ uri: 'https://www.ethersec.com/SafeServe/ServerPhP/UI/images/PNG_Imgs/ESI_Logo.png' }}
-                            source={{ uri:'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}}
-                          resizeMode={"cover"}
-                            controls
-                          /> */}
-                      <Image 
-                            source={{uri: 'https://38.media.tumblr.com/9e9bd08c6e2d10561dd1fb4197df4c4e/tumblr_mfqekpMktw1rn90umo1_500.gif'}}  
+                        
+                        <Image 
+                            source={require('../assets/AAA269CA-258D-4B74-A6F6-CD341B2F167A.gif')}  
                             style={styles.videoView}
-                      />
-                     
+                        />
+                            
                         </View>
 
                       <View style={styles.view}>
@@ -309,7 +303,7 @@ const styles = StyleSheet.create({
   buttonText:{
     // width: 230,
     height: 24,
-    // fontFamily: "CeraPro-Medium",
+    fontFamily: "CeraPro-Medium",
     fontSize: 20,
     lineHeight: 24,
     letterSpacing: -0.41,
