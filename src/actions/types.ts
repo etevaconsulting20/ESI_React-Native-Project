@@ -1,4 +1,0 @@
-export const actionTypes = {
-    TEST_SAMPLE:"TEST_SAMPLE",
-    TEST_SAMPLE_SUCCESS:"TEST_SAMPLE_SUCCESS"
-}

@@ -17,9 +17,7 @@ const AppContainer = createAppContainer(AppNavigator);
 export default class App extends React.Component<Props> {  
   render() {  
       return (
-      <Provider store={store}>
           <AppContainer />
-      </Provider>
      )
   }  
 }  

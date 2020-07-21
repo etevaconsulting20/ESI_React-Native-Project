@@ -6,14 +6,10 @@ import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import axios from "axios";
 import moment from 'moment';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
-import * as testActions from "./actions/TestAction";
 import PushNotification from 'react-native-push-notification'
 import PushNotificationIOS from "@react-native-community/push-notification-ios";
 interface Props extends NavigationScreenProp<void> {
   navigation: NavigationScreenProp<any, any>;
-  testActions: typeof testActions;
 }
 
 interface State {
@@ -187,9 +183,6 @@ class Login extends Component<Props, State> {
   closeLoginFailedModal() {
     this.setState({ loginFailedModal: false, networkErrorMessage: false, loginErrorMessage: false, serverErrorMessage: false })
   }
-  testSample() {
-    this.props.testActions.testSample('Kashyap');
-  }
   render() {
     // console.log("this.props.testReducer.name.....",this.props.testReducer);
     return (
@@ -335,17 +328,5 @@ const styles = StyleSheet.create({
      image:{height:150,width:150,margin:15,alignSelf:'center'},
   });
 
-const mapStateToProps = ({ testReducer }) => {
-  return {
-    testReducer: testReducer
-  }
-}
-
-const mapDispatchToProps = (dispatch: any) => {
-  return {
-    testActions: bindActionCreators(testActions, dispatch)
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default Login;
 
