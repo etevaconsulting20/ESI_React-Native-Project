@@ -63,7 +63,7 @@ class NotificationList extends Component<Props, State> {
                 this.getNotificationDataFromStorage();
             }
             
-        },10000)
+        },7000)
       }
       componentWillUnmount(){
         // console.log(".............component will unmount")
@@ -116,18 +116,20 @@ class NotificationList extends Component<Props, State> {
                                 //   console.log(' notificationInfo...............',notificationInfo);
                                   AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo));
                               }
-                         
-                        //   PushNotification.localNotification({
-                        //       autoCancel:true,
-                        //         title: "Pending Notifications", 
-                        //       message: "Pending Notifications", 
-                        //       playSound: true, 
-                        //       soundName: "default",
-                        //       invokeApp: true, 
-                        //       largeIcon:'esi_logo',
-                        //       smallIcon:'esi_logo',
-                        //       color:'#00BFFF',
-                        //   });
+                         if(Platform.OS == 'android'){
+                                PushNotification.localNotification({
+                                autoCancel:true,
+                                    title: "Pending Notifications", 
+                                message: "Pending Notifications", 
+                                playSound: true, 
+                                soundName: "default",
+                                invokeApp: true, 
+                                largeIcon:'esi_logo',
+                                smallIcon:'esi_logo',
+                                color:'#00BFFF',
+                            });
+                         }
+                        
                 }
             },
 

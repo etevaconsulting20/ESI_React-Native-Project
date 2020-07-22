@@ -1,5 +1,5 @@
 
-import { AsyncStorage } from 'react-native';
+import { AsyncStorage, Platform } from 'react-native';
 import PushNotification from 'react-native-push-notification'
 
     //push notification
@@ -22,18 +22,19 @@ import PushNotification from 'react-native-push-notification'
                                 console.log('from notificationInfo in notify...............',notificationInfo);
                                 AsyncStorage.setItem('notificationData',JSON.stringify(notificationInfo)); 
                             }
-    
-                    // PushNotification.localNotification({
-                    //     autoCancel:true,
-                    //             title: "Pending Notifications", 
-                    //           message: "Pending Notifications", 
-                    //           playSound: true, 
-                    //           soundName: "default",
-                    //           invokeApp: true, 
-                    //           largeIcon:'esi_logo',
-                    //           smallIcon:'esi_logo',
-                    //           color:'#00BFFF',
-                    //      });
+                        if(Platform.OS == 'android'){
+                            PushNotification.localNotification({
+                                autoCancel:true,
+                                        title: "Pending Notifications", 
+                                      message: "Pending Notifications", 
+                                      playSound: true, 
+                                      soundName: "default",
+                                      invokeApp: true, 
+                                      largeIcon:'esi_logo',
+                                      smallIcon:'esi_logo',
+                                      color:'#00BFFF',
+                                 });
+                            }
                           }
                        
                       },
