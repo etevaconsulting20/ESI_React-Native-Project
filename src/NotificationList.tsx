@@ -272,13 +272,6 @@ class NotificationList extends Component<Props, State> {
       }
     render(){
         return(
-            <SafeAreaView>
-            <ScrollView
-              contentContainerStyle={styles.scrollView}
-              refreshControl={
-                <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />
-              }
-            >
            
             <Container>
                  <Header style={styles.header}>
@@ -406,8 +399,7 @@ class NotificationList extends Component<Props, State> {
 
               </ScrollView>
              </Container>
-             </ScrollView>
-          </SafeAreaView>
+        
         )
     }
 }
