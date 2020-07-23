@@ -201,7 +201,7 @@ class NotificationList extends Component<Props, State> {
             })
         }
         if(text == 'logoutAndDeleteMsg'){
-            AsyncStorage.multiRemove(['authenticationKey','notificationData'],()=>{
+                AsyncStorage.multiRemove(['authenticationKey','notificationData'],()=>{
                 this.props.navigation.navigate('Login')
             })
         }
@@ -315,16 +315,16 @@ class NotificationList extends Component<Props, State> {
                  {/* <View style={{backgroundColor:'#383838'}}> */}
                 {this.state.notificationDetails && this.state.notificationDetails.length > 0 ? this.state.notificationDetails.map((data:any,i:any)=>(
                     <TouchableOpacity key={i} onPress={() => this.navigateToNotificationDetails(data,i)}>
-                    <View style={{flexDirection:'row',height:120,backgroundColor:data.isRead ?'#E0E0E0':'#787878', borderBottomColor:data.isRead ? '#808080' : '#ffffff',borderBottomWidth:0.4}}>
+                    <View style={{flexDirection:'row',height:63,backgroundColor:data.isRead ?'#E0E0E0':'#383838', borderBottomColor:data.isRead ? '#808080' : '#ffffff',borderBottomWidth:0.4}}>
                         <Left style={{flex:1}}>
-                            <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:data.isRead ? '#00376c': '#800000' }}> </MaterialCommunityIcons>
+                            <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:data.isRead ? '#000000': '#ffffff' }}> </MaterialCommunityIcons>
                         </Left>
                         <Body style={{flex:3,flexDirection:'column',flexWrap:'wrap'}}>  
                               <Text style={data.isRead ? styles.text1 : styles.text}>{data.systemId}</Text>
                              <Text style={data.isRead ? styles.subText1 : styles.subText}>Camera: {data.cameraId}</Text>
                         </Body>
                         <Right style={{flex:1.5}}>
-                            <Text style={{color:data.isRead ? '#000000' : '#00376c',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>
+                            <Text style={{color:data.isRead ? '#000000' : '#1E90FF',paddingRight:12,fontSize:16,fontWeight:data.isRead ? 'normal' : 'bold'}}>
                                      {moment(moment.unix(data.dateTimeAlarm/1000).format("MM/DD/YYYY")).isBefore(moment().format("MM/DD/YYYY")) 
                                        ? `${moment.unix(data.dateTimeAlarm/1000).format('ddd hh:mm')}`  
                                        :  `${moment.unix(data.dateTimeAlarm/1000).format('hh:mm')}` }
@@ -428,9 +428,9 @@ class NotificationList extends Component<Props, State> {
     },
     subText:{color:'#ffffff',fontSize:15,fontWeight:'bold'},
     text1:{
-        color:'#000000',fontSize:20,fontWeight:'normal'
+        color:'#000000',fontSize:20,fontWeight:'normal',fontStyle:'italic'
     },
-    subText1:{ color:'#000000',fontSize:15,fontWeight:'normal'},
+    subText1:{ color:'#000000',fontSize:15,fontWeight:'normal',fontStyle:'italic'},
     menuModal: {  
         alignSelf:'flex-end',
         backgroundColor : "#ffffff",   
