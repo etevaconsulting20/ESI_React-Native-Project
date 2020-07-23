@@ -317,8 +317,10 @@ class NotificationList extends Component<Props, State> {
                     <TouchableOpacity key={i} onPress={() => this.navigateToNotificationDetails(data,i)}>
                     <View style={{flexDirection:'row',height:63,backgroundColor:data.isRead ?'#E0E0E0':'#383838', borderBottomColor:data.isRead ? '#808080' : '#ffffff',borderBottomWidth:0.4}}>
                         <Left style={{flex:1}}>
-                            <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:data.isRead ? '#000000': '#ffffff' }}> </MaterialCommunityIcons>
-                        </Left>
+                            {data.isRead ? 
+                                <MaterialCommunityIcons name="bell-outline" style={{fontSize:38 ,alignSelf:'center'}}> </MaterialCommunityIcons>:
+                                <MaterialCommunityIcons name="bell-alert" style={{fontSize:38 ,color:'#ffffff'}}> </MaterialCommunityIcons> }
+                         </Left>
                         <Body style={{flex:3,flexDirection:'column',flexWrap:'wrap'}}>  
                               <Text style={data.isRead ? styles.text1 : styles.text}>{data.systemId}</Text>
                              <Text style={data.isRead ? styles.subText1 : styles.subText}>Camera: {data.cameraId}</Text>
