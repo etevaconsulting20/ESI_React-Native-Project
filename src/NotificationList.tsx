@@ -1,16 +1,25 @@
 
 import React, {Component} from 'react';
-import { StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert, Modal,ToastAndroid, Dimensions, Linking, TouchableWithoutFeedback, AsyncStorage, SafeAreaView, RefreshControl} from 'react-native';
+import {ActionSheetIOS,Modal, StyleSheet,Text, View,ScrollView, Platform, TouchableOpacity, Alert,ToastAndroid, Dimensions, Linking, TouchableWithoutFeedback, AsyncStorage, SafeAreaView, RefreshControl} from 'react-native';
 import {Item,Input,Toast, Title, Header, Left, Right, Body, Button, CheckBox, Container} from 'native-base'
 import { NavigationScreenProp, NavigationEvents } from 'react-navigation';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
-import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
+// import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import PushNotification from 'react-native-push-notification'
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import * as _ from 'lodash';
 import NotificationDetails from './NotificationDetails';
+// import Modal from 'react-native-modal'
+import {
+    Menu,
+    MenuOptions,
+    MenuOption,
+    MenuTrigger,
+    MenuProvider,
+  } from 'react-native-popup-menu';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface  Props extends NavigationScreenProp <void>{
     navigation: NavigationScreenProp<any, any>;
@@ -25,7 +34,8 @@ interface  Props extends NavigationScreenProp <void>{
       notificationDetails:any,
       unreadNotifications:any,
       username:any,
-      refreshing:boolean
+      refreshing:boolean,
+      isVisible:boolean
   }
 let timer: any;
 class NotificationList extends Component<Props, State> {
@@ -42,7 +52,8 @@ class NotificationList extends Component<Props, State> {
          notificationDetails:[],
          unreadNotifications:null,
          username:null,
-         refreshing:false
+         refreshing:false,
+         isVisible:false
       }
     }
 
@@ -153,10 +164,10 @@ class NotificationList extends Component<Props, State> {
         })
     }
     openConfirmationModal(modalData:any){
-        this._menu.hide();
-        this.setState({
-            menuModal:false,confirmationModal:true,modal:modalData
-        })
+     
+        // this._menu.hide();
+        console.log(modalData,'modalData',this.state);
+        this.setState({confirmationModal:true,modal:modalData,refreshing:true})
     }
     closeConfirmationModal(){
         this.setState({
@@ -194,7 +205,7 @@ class NotificationList extends Component<Props, State> {
         })
     }
      logout(text:any){
-        this._menu.hide();
+        // this._menu.hide();
         if(text == 'logout'){
             AsyncStorage.multiRemove(['authenticationKey'],()=>{
                 this.props.navigation.navigate('Login')
@@ -208,7 +219,7 @@ class NotificationList extends Component<Props, State> {
     
     }
     loginToSystem(){
-        this._menu.hide();
+        // this._menu.hide();
         Linking.openURL("https://www.myethersec.com/SafeServe/ServerPhP/UI/FrontPages/MyEtherSecFrontPage.php")
     }
     setMenuRef = (ref:any) => {
@@ -274,6 +285,8 @@ class NotificationList extends Component<Props, State> {
         return(
            
             <Container>
+             
+             <MenuProvider>
                  <Header style={styles.header}>
                         <Left style={styles.headerLeft}>
                             <Text style={{color:'#ffffff',fontSize:21,fontWeight:'bold'}}>{this.state.username}</Text>
@@ -284,7 +297,19 @@ class NotificationList extends Component<Props, State> {
                               }
                             </Left>
                         <Right style={styles.headerRight}>
-                            <MaterialCommunityIcons name="home" style={styles.icons}> </MaterialCommunityIcons>
+                                    <Menu >
+                                    <MenuTrigger >
+                                    <Icon style={{color:'#ffffff',fontSize:30,alignSelf:'flex-end'}} name='dots-vertical'></Icon>
+                                        </MenuTrigger>
+                                    <MenuOptions customStyles={{}}>
+                                    <MenuOption style={{height:30}}  onSelect={()=>{this.loginToSystem()}}><Text>Login to System</Text></MenuOption>
+                                    <MenuOption style={{height:30}} onSelect={()=>{this.openConfirmationModal('deleteAll')}}><Text>Delete All</Text></MenuOption>
+                                    <MenuOption style={{height:30}} onSelect={()=>{this.openConfirmationModal('deleteAllRead')}}><Text>Delete All Read</Text></MenuOption>
+                                    <MenuOption style={{height:30}} onSelect={()=>{this.openConfirmationModal('logout')}}><Text>Logout</Text></MenuOption>
+                                      
+                                    </MenuOptions>
+                                    </Menu>
+                            {/* <MaterialCommunityIcons name="home" style={styles.icons}> </MaterialCommunityIcons>
                             <Menu style={styles.menuModal}
                                     ref={this.setMenuRef}
                                     button={ <MaterialCommunityIcons onPress={()=>this.showMenu()} name="dots-vertical" style={styles.icons}> </MaterialCommunityIcons>}>
@@ -292,26 +317,73 @@ class NotificationList extends Component<Props, State> {
                                 <MenuItem onPress={()=>this.openConfirmationModal('deleteAll')}>Delete All</MenuItem>
                                 <MenuItem onPress={()=>this.openConfirmationModal('deleteAllRead')}>Delete All Read</MenuItem>
                                 <MenuItem onPress={()=>this.openConfirmationModal('logout')}>Logout</MenuItem>
-                            </Menu>
+                            </Menu> */}
                             {/* <MaterialCommunityIcons onPress={()=>this.openMenuModal()} name="dots-vertical" style={styles.icons}> </MaterialCommunityIcons> */}
                         </Right>
                     </Header>
             <ScrollView>
-                {/* <NavigationEvents 
-            onWillFocus={payload => {
-                // this.getNotificationDataFromStorage();
-                // this.getNotificationMessage();
-                console.log(".............will focus")
-                timer = setInterval(()=>{
-                    this.getNotificationDataFromStorage();
-                },2000)
-            }}
-            onWillBlur={()=>{
-                console.log(".............will blur")
-                clearInterval(timer);
-            }}
-            /> */}
-                   
+            <Modal  
+            animationType = {"fade"}  
+            transparent = {true}  
+            visible = {this.state.confirmationModal}  
+            onRequestClose = {() =>{ console.log("Modal has been closed.") } }>  
+            {/*All views of Modal*/}  
+                <View  style={styles.confirmationModal}   >
+                            {this.state.modal == 'deleteAll' ? <Text style={styles.confirmText}>Are you sure you want to delete all messages?</Text> : null}
+                            {this.state.modal == 'deleteAllRead' ? <Text style={styles.confirmText}>Are you sure you want to delete all read messages?</Text> : null}
+                            {'logout' == 'logout' ?
+                            <View>
+                                <Text style={styles.confirmText}>Are you sure you want to logout?</Text>
+                                <Button transparent style={{marginTop:25}} onPress={()=>this.toggleCheckbox()}>
+                                <View style={{flexDirection:"row"}}>
+                                    <Left style={{flex:3}}>
+                                        <Text style={{color:'#808080',fontSize:18}}>Tick to confirm you wish to logout and no longer receive alert messages.</Text>
+                                    </Left>
+                                    <Right style={{flex:0.5,paddingRight:12}}>
+                                        <CheckBox checked={this.state.tickToConfirm} onPress={()=>this.toggleCheckbox()}></CheckBox>
+                                    </Right>
+                                </View>
+                            </Button> 
+                            <View style={{flexDirection:'column',paddingTop:10,marginTop:200}}>
+                                    <Button transparent style={{alignSelf:'flex-end',marginBottom:20}} onPress={()=>this.logout('logout')} disabled={!this.state.tickToConfirm}>
+                                        <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES</Text>
+                                    </Button>
+                                    <Button transparent style={{alignSelf:'flex-end',marginBottom:20}} onPress={()=>this.logout('logoutAndDeleteMsg')} disabled={!this.state.tickToConfirm}>
+                                        <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES AND DELETE EXISTING MESSAGES</Text>
+                                    </Button>
+                                    <Button transparent style={{alignSelf:'flex-end'}} onPress={()=>this.closeConfirmationModal()} >
+                                        <Text style={{color:'#009999',fontWeight:'bold',fontSize:20}}>CANCEL</Text>
+                                    </Button>
+                                </View>
+                            </View> :
+                            
+                            <View>
+                                <Button transparent onPress={()=>this.toggleCheckbox()}>
+                                <View style={{flexDirection:"row"}}>
+                                    <Left>
+                                        <Text style={{color:'#808080',fontSize:18}}>Tick to confirm</Text>
+                                    </Left>
+                                    <Right style={{paddingRight:12}}>
+                                        <CheckBox checked={this.state.tickToConfirm} onPress={()=>this.toggleCheckbox()}></CheckBox>
+                                    </Right>
+                                </View>
+                                </Button> 
+                                <View style={{flexDirection:'row',marginTop:300}}>
+                                    <Left>
+                                        <Button transparent onPress={()=>this.closeConfirmationModal()}> 
+                                            <Text style={{color:'#009999',fontWeight:'bold',fontSize:20}}>CANCEL</Text>
+                                        </Button>
+                                    </Left>
+                                    <Right>
+                                        <Button transparent onPress={()=>this.showToastAndDeleteNotifications()} disabled={!this.state.tickToConfirm}>
+                                            <Text style={{color:this.state.tickToConfirm ? '#009999' : '#C0C0C0',fontWeight:'bold',fontSize:20}}>YES</Text>
+                                        </Button>
+                                    </Right>
+                                </View>
+                            </View>}
+                            
+                        </View>
+            </Modal>
                  {/* <View style={{backgroundColor:'#383838'}}> */}
                 {this.state.notificationDetails && this.state.notificationDetails.length > 0 ? this.state.notificationDetails.map((data:any,i:any)=>(
                     <TouchableOpacity key={i} onPress={() => this.navigateToNotificationDetails(data,i)}>
@@ -335,14 +407,13 @@ class NotificationList extends Component<Props, State> {
                     </View>
                     </TouchableOpacity>
                 )) :
-                <View style={{justifyContent:'center',alignItems:'center',paddingTop:20}}>
+                <View style={{justifyContent:'center',alignItems:'center',paddingTop:20,zIndex:0}}>
                     <Text style={{fontSize:18,color:'#808080'}}>No notifications to display</Text>
-                </View>
-            }
+                </View>}
            
-                
-                <Modal visible={this.state.confirmationModal} transparent={true} animationType={'none'}>
-                    <View style={styles.confirmationModal}>
+                {/* {this.state.confirmationModal? */}
+                {/* <Modal isVisible={false} >
+                    <View >
                         {this.state.modal == 'deleteAll' ? <Text style={styles.confirmText}>Are you sure you want to delete all messages?</Text> : null}
                         {this.state.modal == 'deleteAllRead' ? <Text style={styles.confirmText}>Are you sure you want to delete all read messages?</Text> : null}
                         {this.state.modal == 'logout' ?
@@ -397,9 +468,12 @@ class NotificationList extends Component<Props, State> {
                         </View>}
                         
                     </View>
-                </Modal>
+                </Modal> */}
+                {/* :null} */}
 
               </ScrollView>
+
+              </MenuProvider>
              </Container>
         
         )
@@ -416,6 +490,7 @@ class NotificationList extends Component<Props, State> {
         backgroundColor:'#181818',
         height:65,
         borderBottomColor:'#ffffff',borderBottomWidth:0.4,
+        overflow:'visible'
     },
     headerLeft: {
         flex: 2,
