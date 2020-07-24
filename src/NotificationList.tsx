@@ -301,11 +301,11 @@ class NotificationList extends Component<Props, State> {
                                     <MenuTrigger >
                                     <Icon style={{color:'#ffffff',fontSize:30,alignSelf:'flex-end'}} name='dots-vertical'></Icon>
                                         </MenuTrigger>
-                                    <MenuOptions customStyles={{}}>
-                                    <MenuOption style={{height:30}}  onSelect={()=>{this.loginToSystem()}}><Text>Login to System</Text></MenuOption>
-                                    <MenuOption style={{height:30}} onSelect={()=>{this.openConfirmationModal('deleteAll')}}><Text>Delete All</Text></MenuOption>
-                                    <MenuOption style={{height:30}} onSelect={()=>{this.openConfirmationModal('deleteAllRead')}}><Text>Delete All Read</Text></MenuOption>
-                                    <MenuOption style={{height:30}} onSelect={()=>{this.openConfirmationModal('logout')}}><Text>Logout</Text></MenuOption>
+                                    <MenuOptions>
+                                    <MenuOption style={styles.menuModal}  onSelect={()=>{this.loginToSystem()}}><Text style={{fontSize:17}}>Login to System</Text></MenuOption>
+                                    <MenuOption style={styles.menuModal} onSelect={()=>{this.openConfirmationModal('deleteAll')}}><Text style={{fontSize:17}}>Delete All</Text></MenuOption>
+                                    <MenuOption style={styles.menuModal} onSelect={()=>{this.openConfirmationModal('deleteAllRead')}}><Text style={{fontSize:17}}>Delete All Read</Text></MenuOption>
+                                    <MenuOption style={styles.menuModal} onSelect={()=>{this.openConfirmationModal('logout')}}><Text style={{fontSize:17}}>Logout</Text></MenuOption>
                                       
                                     </MenuOptions>
                                     </Menu>
@@ -331,7 +331,7 @@ class NotificationList extends Component<Props, State> {
                 <View  style={styles.confirmationModal}   >
                             {this.state.modal == 'deleteAll' ? <Text style={styles.confirmText}>Are you sure you want to delete all messages?</Text> : null}
                             {this.state.modal == 'deleteAllRead' ? <Text style={styles.confirmText}>Are you sure you want to delete all read messages?</Text> : null}
-                            {'logout' == 'logout' ?
+                            {this.state.modal == 'logout' ?
                             <View>
                                 <Text style={styles.confirmText}>Are you sure you want to logout?</Text>
                                 <Button transparent style={{marginTop:25}} onPress={()=>this.toggleCheckbox()}>
@@ -508,16 +508,20 @@ class NotificationList extends Component<Props, State> {
         color:'#000000',fontSize:20,fontWeight:'normal',fontStyle:'italic'
     },
     subText1:{ color:'#000000',fontSize:15,fontWeight:'normal',fontStyle:'italic'},
-    menuModal: {  
-        alignSelf:'flex-end',
-        backgroundColor : "#ffffff",   
+    // menuModal: {  
+    //     alignSelf:'flex-end',
+    //     backgroundColor : "#ffffff",   
+    //     height: 'auto' ,  
+    //     width: '55%',  
+    //     borderRadius:1,  
+    //     borderWidth: 1,  
+    //     borderColor: '#ccc',    
+    //     elevation:20
+    //      },
+    menuModal:{
         height: 'auto' ,  
-        width: '55%',  
-        borderRadius:1,  
-        borderWidth: 1,  
-        borderColor: '#ccc',    
-        elevation:20
-         },
+            padding:10,
+    },
     confirmationModal:{
         justifyContent:'center',
         // alignItems:'center',
