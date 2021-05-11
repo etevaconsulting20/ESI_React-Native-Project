@@ -16,7 +16,7 @@
     "@types/react-native-vector-icons": "^6.4.5",
     "@types/react-redux": "^7.1.9",
     "axios": "^0.19.2",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "lodash.assign": "^4.2.0",
     "moment": "^2.27.0",
     "native-base": "^2.13.12",
